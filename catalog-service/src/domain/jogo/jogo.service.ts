@@ -28,8 +28,8 @@ export class JogoService {
       dto.desenvolvedora,
       0,
       new Preco(dto.preco.valor, dto.preco.moeda),
-      new Categoria(dto.categoria, 'Categoria do jogo'),
-      new ClassificacaoIndicativa(dto.classificacaoIndicativa),
+      new Categoria(dto.categoria.nome, 'Categoria do jogo'),
+      new ClassificacaoIndicativa(dto.classificacaoIndicativa.faixa),
       new RequisitosTecnicos(
         dto.requisitosTecnicos.sistemaOperacional,
         dto.requisitosTecnicos.placaDeVideo,
@@ -55,8 +55,8 @@ export class JogoService {
       dto.desenvolvedora,
       this.jogos[index].numeroAnalises,
       new Preco(dto.preco.valor, dto.preco.moeda),
-      new Categoria(dto.categoria, 'Categoria do jogo'),
-      new ClassificacaoIndicativa(dto.classificacaoIndicativa),
+      new Categoria(dto.categoria.nome, 'Categoria do jogo'),
+      new ClassificacaoIndicativa(dto.classificacaoIndicativa.faixa),
       new RequisitosTecnicos(
         dto.requisitosTecnicos.sistemaOperacional,
         dto.requisitosTecnicos.placaDeVideo,

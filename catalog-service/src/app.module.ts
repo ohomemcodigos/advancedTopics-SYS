@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { JogoController } from './domain/jogo/jogo.controller';
-import { JogoService } from './domain/jogo/jogo.service';
+import { JogoController } from './domain/jogo/controller/jogo.controller';
+import { JogoService } from './domain/jogo/services/jogo.service';
 
 @Module({
   imports: [],

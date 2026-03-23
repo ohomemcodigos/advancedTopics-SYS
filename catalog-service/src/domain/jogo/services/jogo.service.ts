@@ -15,7 +15,6 @@ export class JogoService {
     return this.jogos;
   }
 
-  // Ajustado para lançar erro se não encontrar [cite: 7, 72]
   findOne(id: string): Jogo {
     const jogo = this.jogos.find(j => j.jogoId === id);
     if (!jogo) throw new NotFoundException(`Jogo ${id} não encontrado`);

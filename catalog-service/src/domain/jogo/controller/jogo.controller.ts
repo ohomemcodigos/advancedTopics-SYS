@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
-import { JogoService } from './jogo.service';
-import { CreateJogoDto } from './dto/create-jogo.dto';
+import { JogoService } from '../services/jogo.service';
+import { CreateJogoDto } from '../dto/create-jogo.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('Jogos')

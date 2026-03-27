@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  catalog-api:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:3000"
+    depends_on:
+      - db-catalog
+
+  db-catalog:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SuaSenhaForte123
+    volumes:
+      - catalog-data:/var/opt/mssql/data
+
+volumes:
+  catalog-data:

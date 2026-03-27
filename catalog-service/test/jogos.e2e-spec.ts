@@ -26,23 +26,21 @@ describe('Jogos (E2E)', () => {
         preco: { valor: 200, moeda: 'BRL' },
         categoria: { nome: 'Ação' },
         classificacaoIndicativa: { faixa: '18+' },
-        requisitosTecnicos: { 
-          sistemaOperacional: 'PS5', 
-          placaDeVideo: 'N/A', 
-          memoriaRam: '16GB' 
-        }
+        requisitosTecnicos: {
+          sistemaOperacional: 'PS5',
+          placaDeVideo: 'N/A',
+          memoriaRam: '16GB',
+        },
       })
       .expect(201)
-      .then(response => {
+      .then((response) => {
         expect(response.body.jogoId).toBeDefined();
         expect(response.body.titulo).toBe('God of War');
       });
   });
 
   it('/jogos (GET) - Deve retornar a lista de jogos', () => {
-    return request(app.getHttpServer())
-      .get('/jogos')
-      .expect(200);
+    return request(app.getHttpServer()).get('/jogos').expect(200);
   });
 
   afterAll(async () => {

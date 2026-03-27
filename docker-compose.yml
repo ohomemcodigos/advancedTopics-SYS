@@ -15,8 +15,8 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=SuaSenhaForte123
-    volumes:
-      - catalog-data:/var/opt/mssql/data
+  #  volumes:
+  #    - catalog-data:/var/opt/mssql/data
 
-volumes:
-  catalog-data:
+#volumes:
+#  catalog-data:

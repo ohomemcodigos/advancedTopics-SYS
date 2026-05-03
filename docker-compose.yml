@@ -10,6 +10,27 @@ services:
     depends_on:
       - db-catalog
 
+  user-api:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:3000"
+
+  order-api:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:3000"
+
+  payment-api:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:3000"
+
   db-catalog:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:

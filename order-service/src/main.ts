@@ -13,11 +13,9 @@ async function bootstrap() {
   }));
 
   const config = new DocumentBuilder()
-    .setTitle('Catálogo de Jogos - UNIPÊ')
-    .setDescription('API para gestão de jogos, usuários e pedidos')
+    .setTitle('Pedidos')
+    .setDescription('API para gestão de pedidos')
     .setVersion('1.0')
-    .addTag('Jogos')
-    .addTag('Users')
     .addTag('Orders')
     .build();
 

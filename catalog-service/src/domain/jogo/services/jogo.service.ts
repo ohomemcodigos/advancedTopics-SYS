@@ -17,7 +17,11 @@ export class JogoService {
 
   findOne(id: string): Jogo {
     const jogo = this.jogos.find(j => j.jogoId === id);
-    if (!jogo) throw new NotFoundException(`Jogo ${id} não encontrado`);
+
+    if (!jogo) {
+      throw new NotFoundException(`Jogo com ID ${id} não encontrado`);
+    }
+
     return jogo;
   }
 

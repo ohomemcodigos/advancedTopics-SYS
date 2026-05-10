@@ -1,31 +1,31 @@
+// Substitua os imports errados por este:
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Payment, PaymentMethod, PaymentStatus } from './payment.entity';
+import { Pagamento } from './domain/pagamento/entidades/pagamento.entity';
+import { MetodoPagamento } from './domain/pagamento/objetos_de_valor/metodo_pagamento.vo';
+import { Dinheiro } from './domain/pagamento/objetos_de_valor/dinheiro.vo';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class PaymentService {
-  private payments: Payment[] = [];
+  private payments: Pagamento[] = [];
 
-  processPayment(orderId: string, amount: number, method: PaymentMethod): Payment {
-    if (amount <= 0) {
-      throw new BadRequestException('Valor do pagamento deve ser maior que zero');
-    }
+  // Ajuste o método para usar a entidade Pagamento que você já tem
+  processPayment(pedidoId: string, valor: number, tipo: any): Pagamento {
+    const valorTotal = new Dinheiro(valor);
+    const metodo = new MetodoPagamento(tipo, 'Detalhes da transação');
+    
+    const novoPagamento = new Pagamento(
+      randomUUID(),
+      pedidoId,
+      valorTotal,
+      metodo
+    );
 
-    const newPayment = new Payment(orderId, amount, method);
-
-    const isSuccess = Math.random() > 0.2;
-
-    if (isSuccess) {
-      newPayment.status = PaymentStatus.SUCCESS;
-      newPayment.paidAt = new Date();
-    } else {
-      newPayment.status = PaymentStatus.FAILED;
-    }
-
-    this.payments.push(newPayment);
-    return newPayment;
+    this.payments.push(novoPagamento);
+    return novoPagamento;
   }
 
-  getPaymentByOrder(orderId: string): Payment | undefined {
-    return this.payments.find(p => p.orderId === orderId);
+  getPaymentByOrder(orderId: string): Pagamento | undefined {
+    return this.payments.find(p => p.pedidoId === orderId);
   }
 }

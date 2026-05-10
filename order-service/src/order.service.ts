@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { JogoService } from '../jogo/jogo.service';
-import { UserService } from '../user/user.service';
-import { PaymentService } from '../payment/payment.service';
+// Removidos os imports de JogoService, UserService e PaymentService
 import { CreateOrderDto } from './dto/create-order.dto';
 
 export enum OrderStatus {
@@ -15,24 +13,17 @@ export enum OrderStatus {
 export class OrderService {
   private orders: any[] = [];
 
-  constructor(
-    private readonly jogoService: JogoService,
-    private readonly userService: UserService,
-    private readonly paymentService: PaymentService,
-  ) { }
+  constructor() { } // Construtor limpo sem dependências externas
 
   create(dto: CreateOrderDto) {
-    const user = this.userService.findOne(dto.userId);
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
+    const userId = dto.userId;
 
     const jogosSelecionados = dto.jogosIds.map(id => {
-      const jogo = this.jogoService.findOne(id);
-      if (!jogo) {
-        throw new NotFoundException(`Jogo com ID ${id} não encontrado`);
-      }
-      return jogo;
+      return {
+        jogoId: id,
+        titulo: `Jogo ${id}`,
+        preco: { valor: 150.00 } 
+      };
     });
 
     const total = jogosSelecionados.reduce((acc, jogo) => acc + jogo.preco.valor, 0);
@@ -74,18 +65,18 @@ export class OrderService {
       throw new BadRequestException('Este pedido já foi processado ou cancelado');
     }
 
-    const payment = this.paymentService.processPayment(
-      order.id,
-      order.valorTotal,
-      order.metodoPagamento,
-    );
+    // Simulando uma resposta de sucesso do Payment Service
+    const paymentSuccess = true;
 
-    if (payment.status === 'SUCCESS') {
+    if (paymentSuccess) {
       order.status = OrderStatus.CONFIRMED;
       return {
         message: 'Pagamento confirmado e pedido finalizado!',
         order,
-        payment,
+        payment: {
+          status: 'SUCCESS',
+          transactionId: uuid()
+        },
       };
     } else {
       order.status = OrderStatus.CANCELLED;

@@ -25,7 +25,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
-  console.log(`Catalog Service está rodando em: http://localhost:3000/api`);
+  console.log(`Catalog Service está rodando em: http://localhost:5000/api`);
 }
 
 bootstrap();

@@ -1,20 +1,19 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { ListOrdersByUserQuery } from './list-orders-by-user.query';
+import { DataSource } from 'typeorm';
+import { ListOrdersByUserQuery } from '../queries/list-orders-by-user.query';
 
 @QueryHandler(ListOrdersByUserQuery)
 export class ListOrdersByUserHandler implements IQueryHandler<ListOrdersByUserQuery> {
-   async execute(query: ListOrdersByUserQuery) {
-      const offset = (query.pagina - 1) * query.tamanho;
-      
-      const sqlPaginado = `
-         SELECT PedidoId, Status, ValorTotal, CriadoEm 
-         FROM PedidosReadModel 
-         WHERE UserId = $1 
-         ORDER BY CriadoEm DESC 
-         OFFSET $2 LIMIT $3
-      `;
-      const parametros = [query.userId, offset, query.tamanho];
+  
+  constructor(private readonly dataSource: DataSource) {}
 
-      return [];
-   }
+  async execute(query: ListOrdersByUserQuery) {
+    const { userId } = query;
+
+    // Use a variável sqlPaginado que já está no seu arquivo
+    const sqlPaginado = `SELECT * FROM PedidosReadModel WHERE cliente_id = $1 ORDER BY criado_em DESC`;
+
+    // Executa e retorna a lista
+    return await this.dataSource.query(sqlPaginado, [userId]);
+  }
 }

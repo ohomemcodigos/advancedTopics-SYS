@@ -23,6 +23,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5002:3000"
+    depends_on:
+      - rabbitmq
+      - redis
 
   payment-api:
     build:
@@ -30,6 +33,19 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5003:3000"
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # Porta onde os microsserviços se comunicam
+      - "15672:15672" # Painel administrativo web (Acesse http://localhost:15672)
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
 
   db-catalog:
     image: mcr.microsoft.com/mssql/server:2022-latest

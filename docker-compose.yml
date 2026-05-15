@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  catalog-api:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:3000"
+
+  user-api:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:3000"
+
+  order-api:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:3000"
+    depends_on:
+      - rabbitmq
+      - redis
+
+  payment-api:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:3000"
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

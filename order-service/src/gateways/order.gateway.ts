@@ -15,7 +15,7 @@ import { Server, Socket } from 'socket.io';
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  namespace: '/hubs/pedidos',
+//  namespace: '/hubs/pedidos',
 })
 export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()

@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices'; // <-- Import necessário!
 import { v4 as uuid } from 'uuid';
-// Removidos os imports de JogoService, UserService e PaymentService
 import { CreateOrderDto } from './dto/create-order.dto';
 
 export enum OrderStatus {
@@ -13,30 +13,19 @@ export enum OrderStatus {
 export class OrderService {
   private orders: any[] = [];
 
-  constructor() { } // Construtor limpo sem dependências externas
+  // 🚀 O SEGREDO: Injetar o cliente do RabbitMQ para poder falar com a fila
+  constructor(@Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy) { }
 
   create(dto: CreateOrderDto) {
-    const userId = dto.userId;
-
-    const jogosSelecionados = dto.jogosIds.map(id => {
-      return {
-        jogoId: id,
-        titulo: `Jogo ${id}`,
-        preco: { valor: 150.00 } 
-      };
-    });
-
-    const total = jogosSelecionados.reduce((acc, jogo) => acc + jogo.preco.valor, 0);
-
     const novaOrdem = {
       id: uuid(),
       userId: dto.userId,
-      itens: jogosSelecionados.map(j => ({
-        id: j.jogoId,
-        titulo: j.titulo,
-        preco: j.preco.valor
+      itens: dto.jogosIds.map(id => ({
+        id: id,
+        titulo: 'Jogo Simulado para Teste',
+        preco: 49.90
       })),
-      valorTotal: total,
+      valorTotal: 49.90,
       status: OrderStatus.PENDING,
       metodoPagamento: dto.metodoPagamento,
       createdAt: new Date(),
@@ -65,11 +54,19 @@ export class OrderService {
       throw new BadRequestException('Este pedido já foi processado ou cancelado');
     }
 
-    // Simulando uma resposta de sucesso do Payment Service
     const paymentSuccess = true;
 
     if (paymentSuccess) {
       order.status = OrderStatus.CONFIRMED;
+
+      // 🚀 O GATILHO QUE FALTAVA! Avisar o RabbitMQ que o pagamento passou:
+      this.rabbitClient.emit('pedido_status_alterado', {
+        pedidoId: order.id,
+        statusAnterior: 'PENDING',
+        novoStatus: 'CONFIRMED',
+        processadoEm: new Date()
+      });
+
       return {
         message: 'Pagamento confirmado e pedido finalizado!',
         order,

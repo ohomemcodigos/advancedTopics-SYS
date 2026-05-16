@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Store</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e2e; color: #cdd6f4; padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2 { color: #89b4fa; text-align: center; }
+        .aviso-cors { background-color: #f38ba8; color: #11111b; padding: 10px; text-align: center; border-radius: 4px; font-weight: bold; margin-bottom: 20px; display: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background-color: #313244; padding: 15px; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .card:hover { border-color: #89b4fa; }
+        .card h3 { margin: 10px 0 5px 0; font-size: 1.1rem; }
+        .card p { color: #a6e3a1; font-weight: bold; margin-bottom: 15px; }
+        button { background-color: #89b4fa; color: #11111b; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s;}
+        button:hover { background-color: #74c7ec; }
+        button:disabled { background-color: #585b70; cursor: not-allowed; }
+        .painel-pedido { background-color: #313244; padding: 20px; border-radius: 8px; margin-top: 20px; display: none; border: 1px solid #89b4fa; }
+        .log-box { background-color: #11111b; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; height: 250px; overflow-y: auto; color: #a6adc8; white-space: pre-wrap; margin-top: 20px; }
+        #btn-pagar { background-color: #fab387; margin-top: 15px;}
+        #btn-pagar:hover:not(:disabled) { background-color: #f9a06f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Simulação de Vendas</h1>
+    
+    <div id="aviso-cors" class="aviso-cors">
+        ⚠️ Catálogo inacessível (Erro de CORS ou Porta). Será carregado vitrine de Simulação.
+    </div>
+
+    <h2>Vitrine de Jogos</h2>
+    <div class="grid" id="catalogo-grid">
+        <p style="text-align: center; width: 100%;">Carregando dados...</p>
+    </div>
+
+    <div class="painel-pedido" id="painel-pedido">
+        <h2>Acompanhamento do Pedido (via WebSocket)</h2>
+        <div id="status-text" style="font-size: 1.2rem; text-align: center; margin-bottom: 10px; color: #f38ba8;">Status: INICIANDO...</div>
+        
+        <button id="btn-pagar" onclick="simularPagamento()" disabled>3. Pagamento (RabbitMQ)</button>
+        
+        <div class="log-box" id="log">Logs do Sistema:
+-------------------</div>
+    </div>
+</div>
+
+<script>
+    // Configurações exatas que funcionaram no primeiro código
+    const ORDER_API = 'http://localhost:5002';
+    const WS_URL = 'http://localhost:5002/hubs/pedidos';
+    const CATALOG_API = 'http://localhost:5000';
+    
+    let pedidoIdAtual = null;
+    let socket = null;
+    let tokenJwt = null; // Variavel para guardar o token
+
+window.onload = async () => {
+        const grid = document.getElementById('catalogo-grid');
+        
+        // 👇 1. Busca o token de forma independente
+        try {
+            const tokenResponse = await fetch(`${ORDER_API}/orders/auth/mock-token`);
+            if (!tokenResponse.ok) throw new Error(`Erro HTTP: ${tokenResponse.status}`);
+            const tokenData = await tokenResponse.json();
+            tokenJwt = tokenData.token;
+            console.log("🔑 Token obtido com sucesso:", tokenJwt);
+        } catch (err) {
+            console.error("❌ Falha crítica ao buscar o token JWT no backend:", err.message);
+        }
+
+        // 👇 2. Busca o catálogo real em outro bloco
+        try {
+            const response = await fetch(`${CATALOG_API}/jogos`);
+            if(!response.ok) throw new Error("Falha na API");
+            const jogos = await response.json();
+            
+            grid.innerHTML = '';
+            if(jogos.length === 0) throw new Error("Vazio");
+
+            jogos.forEach(jogo => renderCard(grid, jogo.jogoId, jogo.titulo, jogo.preco.valor));
+
+        } catch (error) {
+            document.getElementById('aviso-cors').style.display = 'block';
+            grid.innerHTML = '';
+            renderCard(grid, 'aaa00000-0000-0000-0000-000000000001', 'God of War (Simulado)', 199.90);
+            renderCard(grid, 'bbb00000-0000-0000-0000-000000000002', 'Hollow Knight (Simulado)', 49.90);
+        }
+    };
+
+    function renderCard(grid, id, titulo, preco) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h3>${titulo}</h3>
+            <p>BRL ${preco.toFixed(2)}</p>
+            <button onclick="comprarJogo('${id}')">Comprar (POST)</button>
+        `;
+        grid.appendChild(card);
+    }
+
+    function log(message) {
+        const logBox = document.getElementById('log');
+        logBox.innerHTML += `\n> ${message}`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    async function comprarJogo(jogoId) {
+        document.getElementById('painel-pedido').style.display = 'block';
+        document.getElementById('btn-pagar').disabled = true;
+        log(`POST /orders para o jogo ID: ${jogoId}`);
+
+        try {
+            const response = await fetch(`${ORDER_API}/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: '123e4567-e89b-12d3-a456-426614174000',
+                    jogosIds: [jogoId],
+                    metodoPagamento: 'PIX',
+                })
+            });
+
+            const pedido = await response.json();
+            pedidoIdAtual = pedido.id;
+            
+            log(`✅ Pedido Criado! ID: ${pedidoIdAtual}`);
+            document.getElementById('status-text').innerText = `Status: ${pedido.status}`;
+            
+            conectarWebSocket(pedidoIdAtual);
+
+        } catch (error) {
+            log(`❌ Erro crítico ao criar pedido. O Order-Service não responde na porta 5002. Detalhes: ${error.message}`);
+        }
+    }
+
+    function conectarWebSocket(pedidoId) {
+        log("Conectando ao WebSocket...");
+        
+        if(socket) socket.disconnect(); // Limpa conexão anterior se o usuário comprar 2 jogos
+        
+        // Passa o token no handshake de conexao
+        socket = io(WS_URL, { 
+            transports: ['websocket'],
+            auth: { token: tokenJwt }
+        });
+
+        socket.on('connect', () => {
+            log(`✅ WebSocket Conectado! (ID: ${socket.id})`);
+            log(`Emitindo 'AssinarPedido' para a sala do pedido...`);
+            socket.emit('AssinarPedido', pedidoId);
+        });
+
+        socket.on('AssinaturaConfirmada', (data) => {
+            log(`✅ Assinatura de grupo confirmada pelo servidor!`);
+            document.getElementById('btn-pagar').disabled = false; // Libera o PIX
+        });
+
+        socket.on('StatusAtualizado', (data) => {
+            log(`NOTIFICAÇÃO RECEBIDA (RabbitMQ deu resposta)`);
+            log(`   Status alterado para: ${data.novoStatus}`);
+            document.getElementById('status-text').innerText = `Status: ${data.novoStatus}`;
+            document.getElementById('status-text').style.color = "#a6e3a1";
+        });
+
+        socket.on('connect_error', (err) => {
+            log(`❌ Erro no WebSocket: ${err.message}`);
+        });
+    }
+
+    async function simularPagamento() {
+        if (!pedidoIdAtual) return;
+        try {
+            document.getElementById('btn-pagar').disabled = true;
+            log("PATCH /orders/.../confirmar simulando o Pagamento...");
+
+            const response = await fetch(`${ORDER_API}/orders/${pedidoIdAtual}/confirmar`, {
+                method: 'PATCH'
+            });
+
+            if(response.ok) {
+                log("✅ Requisição HTTP concluída. Aguardando o Payment-Service processar na fila do RabbitMQ e avisar o WebSocket...");
+            }
+
+        } catch (error) {
+            log(`❌ Erro ao enviar pagamento: ${error.message}`);
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { JwtModule } from '@nestjs/jwt'; // <-- Importação do JWT adicionada
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { OrderEventsController } from './order-events.controller';
@@ -10,6 +11,10 @@ import { CreateOrderHandler } from './commands/create-order.handler';
 @Module({
   imports: [
     CqrsModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'senha_doida_uaulegauuuu_567364537@#@',
+      signOptions: { expiresIn: '1d' },
+    }),
     ClientsModule.register([
       {
         name: 'RABBITMQ_SERVICE',

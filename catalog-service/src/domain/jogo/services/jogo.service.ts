@@ -9,7 +9,19 @@ import { RequisitosTecnicos } from '../objetos_de_valor/requisitos-tecnicos.vo';
 
 @Injectable()
 export class JogoService {
-  private jogos: Jogo[] = [];
+  private jogos: Jogo[] = [
+    new Jogo( // Hardcodded para testes
+      'aaa00000-0000-0000-0000-000000000001', // ID fixo para facilitar os testes no Order-Service
+      'Pokémon Fire Red',
+      'Capture e treine monstrinhos de bolso nesta clássica aventura na região de Kanto.',
+      'Game Freak',
+      1500, // número de análises
+      new Preco(149.90, 'BRL'),
+      new Categoria('RPG de turnos', 'Aventura'),
+      new ClassificacaoIndicativa('Livre'),
+      new RequisitosTecnicos('Nintendo Switch | Nintendo Switch 2', 'Gráficos Integrados', '2GB')
+    )
+  ];
 
   findAll(): Jogo[] {
     return this.jogos;

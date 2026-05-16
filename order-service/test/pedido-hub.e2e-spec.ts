@@ -19,6 +19,12 @@ function aguardarEvento(socket: Socket, evento: string, timeoutMs = 8000): Promi
 async function rodarTeste() {
   console.log('\n🧪 Iniciando teste de integração WebSocket...\n');
 
+  // Obtem o token de teste
+  console.log('🔑 Passo 0: Obtendo Token JWT de teste...');
+  const tokenRes = await axios.get(`${ORDER_API}/orders/auth/mock-token`);
+  const token = tokenRes.data.token;
+  console.log('   ✅ Token obtido!\n');
+
   console.log('📦 Passo 1: Criando pedido via POST /orders...');
   const respostaCriacao = await axios.post(`${ORDER_API}/orders`, {
     userId: '123e4567-e89b-12d3-a456-426614174000',
@@ -29,22 +35,21 @@ async function rodarTeste() {
   const pedido = respostaCriacao.data;
   const pedidoId: string = (pedido as any).id;
 
-  console.log(`   ✅ Pedido criado com sucesso!`);
-  console.log(`   ID: ${pedidoId}`);
-  console.log(`   Status: ${(pedido as any).status}\n`);
+  console.log(`   ✅ Pedido criado com sucesso! ID: ${pedidoId}\n`);
 
-  console.log('🔌 Passo 2: Conectando cliente WebSocket em /hubs/pedidos...');
+  console.log('🔌 Passo 2: Conectando cliente WebSocket com JWT...');
   const socket = io(WS_URL, {
     transports: ['websocket'],
+    auth: { token } // O Token é enviado aqui
   });
 
   await new Promise<void>((resolve, reject) => {
     socket.on('connect', () => {
-      console.log(`   ✅ WebSocket conectado! Socket ID: ${socket.id}\n`);
+      console.log(`   ✅ WebSocket autenticado e conectado! Socket ID: ${socket.id}\n`);
       resolve();
     });
     socket.on('connect_error', (err) => {
-      reject(new Error(`Falha ao conectar WebSocket: ${err.message}`));
+      reject(new Error(`Falha de JWT ou Conexão: ${err.message}`));
     });
     setTimeout(() => reject(new Error('Timeout na conexão WebSocket')), 5000);
   });
@@ -53,30 +58,19 @@ async function rodarTeste() {
   socket.emit('AssinarPedido', pedidoId);
 
   const confirmacao = await aguardarEvento(socket, 'AssinaturaConfirmada');
-  console.log(`   ✅ Assinatura confirmada pelo servidor!`);
-  console.log(`   Resposta: ${JSON.stringify(confirmacao)}\n`);
+  console.log(`   ✅ Assinatura confirmada pelo servidor!\n`);
 
-  console.log(`💳 Passo 4: Confirmando pagamento via PATCH /orders/${pedidoId}/confirmar...`);
+  console.log(`💳 Passo 4: Confirmando pagamento via PATCH...`);
   const promessaNotificacao = aguardarEvento(socket, 'StatusAtualizado', 10000);
 
-  const respostaConfirmacao = await axios.patch(`${ORDER_API}/orders/${pedidoId}/confirmar`);
-  console.log(`   ✅ Pagamento confirmado via HTTP!`);
-  console.log(`   Status retornado: ${(respostaConfirmacao.data as any)?.order?.status ?? respostaConfirmacao.status}\n`);
+  await axios.patch(`${ORDER_API}/orders/${pedidoId}/confirmar`);
+  console.log(`   ✅ Pagamento confirmado via HTTP!\n`);
 
-  console.log('⚡ Passo 5: Aguardando notificação em tempo real via WebSocket...');
+  console.log('⚡ Passo 5: Aguardando notificação via WebSocket...');
   const notificacao = await promessaNotificacao;
 
-  console.log(`   ✅ Notificação recebida via WebSocket!`);
-  console.log(`   Dados: ${JSON.stringify(notificacao, null, 2)}\n`);
-
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('✅ TESTE PASSOU — Percurso completo funcionando!');
-  console.log('   POST /orders         → Pedido criado');
-  console.log('   WebSocket connect    → Cliente conectado em /hubs/pedidos');
-  console.log('   emit AssinarPedido   → Grupo assinado');
-  console.log('   PATCH /confirmar     → Pagamento confirmado');
-  console.log('   on StatusAtualizado  → Notificação em tempo real recebida ✔');
-  console.log('═══════════════════════════════════════════════════════\n');
+  console.log(`   ✅ Notificação recebida! Novo Status: ${notificacao.novoStatus}\n`);
+  console.log('✅ TESTE PASSOU — Percurso completo funcionando e blindado com JWT!\n');
 
   socket.disconnect();
   process.exit(0);

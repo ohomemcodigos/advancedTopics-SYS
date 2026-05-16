@@ -21,6 +21,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5002:3000"
+    environment:
+      - JWT_SECRET=senha_doida_uaulegauuuu_567364537@#@
     depends_on:
       - rabbitmq
       - redis

@@ -2,20 +2,26 @@ import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestj
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt'; 
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly jwtService: JwtService
+  ) { }
+
+  // Teste
+  @Get('auth/mock-token')
+  @ApiOperation({ summary: 'Gera um token JWT para testes do WebSocket' })
+  getMockToken() {
+    const token = this.jwtService.sign({ userId: '123e4567-e89b-12d3-a456-426614174000' });
+    return { token };
+  }
 
   @Post()
-  @ApiOperation({
-    summary: 'Criar um novo pedido',
-    description: 'Inicia o processo de compra vinculando um usuário a uma lista de jogos.'
-  })
-  @ApiResponse({ status: 201, description: 'Pedido criado com sucesso (Pendente de Pagamento).' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos ou saldo insuficiente.' })
-  @ApiResponse({ status: 404, description: 'Usuário ou Jogo não encontrado.' })
+  @ApiOperation({ summary: 'Criar um novo pedido' })
   create(@Body() dto: CreateOrderDto) {
     return this.orderService.create(dto);
   }
@@ -28,19 +34,18 @@ export class OrderController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Buscar detalhes de um pedido' })
-  @ApiParam({ name: 'id', description: 'UUID do pedido' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.orderService.findOne(id);
   }
 
   @Patch(':id/confirmar')
-  @ApiOperation({ summary: 'Confirmar pagamento do pedido', description: 'Altera o status do pedido para CONFIRMADO.' })
+  @ApiOperation({ summary: 'Confirmar pagamento do pedido' })
   confirmPayment(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.orderService.confirmOrder(id);
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Listar pedidos de um usuário específico' })
+  @ApiOperation({ summary: 'Listar pedidos de um usuário' })
   findByUser(@Param('userId') userId: string) {
     return this.orderService.findByUser(userId);
   }

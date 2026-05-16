@@ -20,7 +20,11 @@ describe('JogoService (Unitário)', () => {
     preco: { valor: 120, moeda: 'BRL' },
     categoria: { nome: 'Metroidvania' },
     classificacaoIndicativa: { faixa: 'Livre' },
-    requisitosTecnicos: { sistemaOperacional: 'Win', placaDeVideo: 'GTX', memoriaRam: '8GB' }
+    requisitosTecnicos: {
+      sistemaOperacional: 'Win',
+      placaDeVideo: 'GTX',
+      memoriaRam: '8GB',
+    },
   };
 
   it('deve retornar uma lista de jogos (findAll) [cite: 90, 94]', () => {
@@ -41,17 +45,17 @@ describe('JogoService (Unitário)', () => {
   it('deve atualizar um jogo com sucesso ', () => {
     const criado = service.create(mockDto);
     const updateDto = { ...mockDto, titulo: 'Silksong' };
-    
+
     const atualizado = service.update(criado.jogoId, updateDto);
-    
+
     expect(atualizado.titulo).toBe('Silksong');
   });
 
   it('deve garantir que o jogo foi removido da lista [cite: 72, 896]', () => {
     const criado = service.create(mockDto);
-    
+
     service.delete(criado.jogoId);
-    
+
     expect(() => service.findOne(criado.jogoId)).toThrow(NotFoundException);
   });
 

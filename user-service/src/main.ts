@@ -2,9 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { UserModule } from './user.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UserModule);
+  const app = await NestFactory.create(UserModule, { bufferLogs: true });
+
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,7 +29,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
-  console.log(`User Service está rodando em: http://localhost:3000/api`);
+  app.get(Logger).log(`User Service está rodando em: http://localhost:3000/api`);
 }
 
 bootstrap();

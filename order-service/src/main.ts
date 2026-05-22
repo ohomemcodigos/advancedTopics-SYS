@@ -4,9 +4,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { RedisIoAdapter } from './gateways/redis.adapter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -42,6 +45,6 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(3000);
 
-  console.log(`Order Service rodando em: http://localhost:3000/api`);
+  app.get(Logger).log(`Order Service rodando em: http://localhost:3000/api`);
 }
 bootstrap();

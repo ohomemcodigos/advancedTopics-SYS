@@ -7,9 +7,17 @@ import { OrderService } from './order.service';
 import { OrderEventsController } from './order-events.controller';
 import { OrderGateway } from './gateways/order.gateway';
 import { CreateOrderHandler } from './commands/create-order.handler';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { singleLine: true } }
+          : undefined,
+      },
+    }),
     CqrsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'senha_doida_uaulegauuuu_567364537@#@',

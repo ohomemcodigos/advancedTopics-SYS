@@ -2,17 +2,16 @@ import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestj
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { JwtService } from '@nestjs/jwt'; 
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService // Novo Service
   ) { }
 
-  // Teste
   @Get('auth/mock-token')
   @ApiOperation({ summary: 'Gera um token JWT para testes do WebSocket' })
   getMockToken() {

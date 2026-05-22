@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices'; // <-- Import necessário!
+import { ClientProxy } from '@nestjs/microservices';
 import { v4 as uuid } from 'uuid';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderGateway } from './gateways/order.gateway';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -13,8 +14,10 @@ export enum OrderStatus {
 export class OrderService {
   private orders: any[] = [];
 
-  // 🚀 O SEGREDO: Injetar o cliente do RabbitMQ para poder falar com a fila
-  constructor(@Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy) { }
+  constructor(
+    @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
+    private readonly orderGateway: OrderGateway,
+  ) { }
 
   create(dto: CreateOrderDto) {
     const novaOrdem = {
@@ -30,7 +33,6 @@ export class OrderService {
       metodoPagamento: dto.metodoPagamento,
       createdAt: new Date(),
     };
-
     this.orders.push(novaOrdem);
     return novaOrdem;
   }
@@ -41,9 +43,7 @@ export class OrderService {
 
   findOne(id: string) {
     const order = this.orders.find(o => o.id === id);
-    if (!order) {
-      throw new NotFoundException('Pedido não encontrado');
-    }
+    if (!order) throw new NotFoundException('Pedido não encontrado');
     return order;
   }
 
@@ -54,31 +54,32 @@ export class OrderService {
       throw new BadRequestException('Este pedido já foi processado ou cancelado');
     }
 
-    const paymentSuccess = true;
+    order.status = OrderStatus.CONFIRMED;
 
-    if (paymentSuccess) {
-      order.status = OrderStatus.CONFIRMED;
+    // Publica no RabbitMQ para o payment-service processar
+    this.rabbitClient.emit('order_created', {
+      pedidoId: order.id,
+      valor: order.valorTotal,
+      processadoEm: new Date(),
+    });
 
-      // 🚀 O GATILHO QUE FALTAVA! Avisar o RabbitMQ que o pagamento passou:
-      this.rabbitClient.emit('pedido_status_alterado', {
-        pedidoId: order.id,
-        statusAnterior: 'PENDING',
-        novoStatus: 'CONFIRMED',
-        processadoEm: new Date()
-      });
+    // Notifica o frontend via WebSocket imediatamente
+    this.orderGateway.notificarStatusAlterado(order.id, {
+      pedidoId: order.id,
+      statusAnterior: 'PENDING',
+      novoStatus: 'CONFIRMED',
+      observacao: 'Pagamento confirmado com sucesso!',
+      alteradoEm: new Date(),
+    });
 
-      return {
-        message: 'Pagamento confirmado e pedido finalizado!',
-        order,
-        payment: {
-          status: 'SUCCESS',
-          transactionId: uuid()
-        },
-      };
-    } else {
-      order.status = OrderStatus.CANCELLED;
-      throw new BadRequestException('Falha no pagamento. Pedido cancelado.');
-    }
+    return {
+      message: 'Pagamento confirmado e pedido finalizado!',
+      order,
+      payment: {
+        status: 'SUCCESS',
+        transactionId: uuid(),
+      },
+    };
   }
 
   findByUser(userId: string) {

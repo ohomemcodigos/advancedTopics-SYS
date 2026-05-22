@@ -1,59 +1,108 @@
 version: '3.8'
 
 services:
+  # --- REDIS (Cache Distribuído e Adapter WebSocket) ---
+  redis:
+    image: redis:7-alpine
+    container_name: gestaopedidos-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass redissenha123
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redissenha123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gestaopedidos-network
+
+  # --- REDIS INSIGHT (Interface Gráfica de Monitoramento) ---
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: gestaopedidos-redisinsight
+    ports:
+      - "5540:5540"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - gestaopedidos-network
+
+  # --- RABBITMQ (Mensageria por Filas) ---
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gestaopedidos-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Painel administrativo do RabbitMQ
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gestaopedidos-network
+
+  # --- MICROSSERVIÇO: CATALOG SERVICE ---
   catalog-api:
     build:
       context: ./catalog-service
-      dockerfile: Dockerfile
+    container_name: gestaopedidos-catalog-api
     ports:
-      - "5000:3000"
+      - "5000:3000" # Mapeia a porta 5000 usada pelo Frontend
     depends_on:
-      - db-catalog
+      redis:
+        condition: service_healthy
+    networks:
+      - gestaopedidos-network
 
-  user-api:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    ports:
-      - "5001:3000"
-
+  # --- MICROSSERVIÇO: ORDER SERVICE ---
   order-api:
     build:
       context: ./order-service
-      dockerfile: Dockerfile
+    container_name: gestaopedidos-order-api
     ports:
-      - "5002:3000"
+      - "5002:3000" # Mapeia a porta 5002 usada pelo Frontend e WebSockets
+    environment:
+      - JWT_SECRET=senha_doida_uaulegauuuu_567364537@#@
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gestaopedidos-network
 
+  # --- MICROSSERVIÇO: PAYMENT SERVICE ---
   payment-api:
     build:
       context: ./payment-service
-      dockerfile: Dockerfile
+    container_name: gestaopedidos-payment-api
     ports:
       - "5003:3000"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gestaopedidos-network
 
-  rabbitmq:
-    image: rabbitmq:3-management
+  # --- MICROSSERVIÇO: USER SERVICE ---
+  user-api:
+    build:
+      context: ./user-service
+    container_name: gestaopedidos-user-api
     ports:
-      - "5672:5672"   # Porta onde os microsserviços se comunicam
-      - "15672:15672" # Painel administrativo web (Acesse http://localhost:15672)
+      - "5001:3000"
+    networks:
+      - gestaopedidos-network
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+# Rede interna isolada para comunicação estável por nome do serviço
+networks:
+  gestaopedidos-network:
+    driver: bridge
 
-  db-catalog:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=SuaSenhaForte123
-  #  volumes:
-  #    - catalog-data:/var/opt/mssql/data
-
-#volumes:
-#  catalog-data:
+# Definição do volume nomeado para persistência do cache em disco
+volumes:
+  redis-data:

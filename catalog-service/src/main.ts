@@ -2,9 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(new PrometheusInterceptor());
+  app.enableCors({ origin: '*', credentials: true });
 
   app.enableCors({ origin: '*', credentials: true });
 
@@ -26,8 +33,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000); // Internamente ele roda na 3000
-  console.log(`Catalog Service está rodando em: http://localhost:5000/api`);
+  await app.listen(3001); 
+  
+  app.get(Logger).log(`Catalog Service está rodando em: http://localhost:3001/api`);
 }
 
 bootstrap();

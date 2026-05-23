@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  # --- BANCO DE DADOS: CATALOG (SQL Server) ---
+  db-catalog:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db-catalog-1
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=MasterKey@123!
+    networks:
+      - gestaopedidos-network
+
   # --- REDIS (Cache Distribuído e Adapter WebSocket) ---
   redis:
     image: redis:7-alpine

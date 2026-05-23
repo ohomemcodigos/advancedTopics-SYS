@@ -4,9 +4,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { RedisIoAdapter } from './gateways/redis.adapter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(new PrometheusInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -33,7 +38,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://rabbitmq:5672'],
+      urls: ['amqp://localhost:5672'],
       queue: 'payment_queue',
       queueOptions: { durable: true },
     },
@@ -42,6 +47,6 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(3000);
 
-  console.log(`Order Service rodando em: http://localhost:3000/api`);
+  app.get(Logger).log(`Order Service rodando em: http://localhost:3000/api`);
 }
 bootstrap();

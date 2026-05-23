@@ -1,31 +1,88 @@
 // Substitua os imports errados por este:
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { Pagamento } from './domain/pagamento/entidades/pagamento.entity';
 import { MetodoPagamento } from './domain/pagamento/objetos_de_valor/metodo_pagamento.vo';
 import { Dinheiro } from './domain/pagamento/objetos_de_valor/dinheiro.vo';
 import { randomUUID } from 'crypto';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
   private payments: Pagamento[] = [];
+
+  constructor(
+    @InjectMetric('payments_processed_total')
+    private readonly paymentsProcessedCounter: Counter<string>,
+  ) {}
 
   // Ajuste o método para usar a entidade Pagamento que você já tem
   processPayment(pedidoId: string, valor: number, tipo: any): Pagamento {
-    const valorTotal = new Dinheiro(valor);
-    const metodo = new MetodoPagamento(tipo, 'Detalhes da transação');
-    
-    const novoPagamento = new Pagamento(
-      randomUUID(),
-      pedidoId,
-      valorTotal,
-      metodo
-    );
+    this.logger.log({
+      msg: 'Iniciando processamento de pagamento',
+      action: 'processPayment',
+      pedidoId: pedidoId,
+      valor: valor,
+      tipoPagamento: tipo,
+    });
 
-    this.payments.push(novoPagamento);
-    return novoPagamento;
+    try {
+      const valorTotal = new Dinheiro(valor);
+      const metodo = new MetodoPagamento(tipo, 'Detalhes da transação');
+
+      const novoPagamento = new Pagamento(
+        randomUUID(),
+        pedidoId,
+        valorTotal,
+        metodo,
+      );
+
+      this.payments.push(novoPagamento);
+      this.paymentsProcessedCounter.inc({ status: 'success' });
+      this.logger.log({
+        msg: 'Pagamento processado com sucesso',
+        action: 'processPayment',
+        pagamentoId: novoPagamento.pagamentoId,
+        pedidoId: pedidoId,
+      });
+      return novoPagamento;
+    } catch (error) {
+      this.paymentsProcessedCounter.inc({ status: 'failure' });
+      this.logger.error({
+        msg: 'Falha ao processar pagamento',
+        action: 'processPayment',
+        pedidoId: pedidoId,
+        error: error.message,
+      });
+      throw error;
+    }
   }
 
   getPaymentByOrder(orderId: string): Pagamento | undefined {
-    return this.payments.find(p => p.pedidoId === orderId);
+    this.logger.log({
+      msg: 'Buscando pagamento por ID do pedido',
+      action: 'getPaymentByOrder',
+      pedidoId: orderId,
+    });
+
+    const payment = this.payments.find((p) => p.pedidoId === orderId);
+
+    if (!payment) {
+      this.logger.warn({
+        msg: 'Nenhum pagamento encontrado para este pedido',
+        action: 'getPaymentByOrder',
+        pedidoId: orderId,
+      });
+    } else {
+      this.logger.log({
+        msg: 'Pagamento encontrado',
+        action: 'getPaymentByOrder',
+        pedidoId: orderId,
+        pagamentoId: payment.pagamentoId, // Supondo que a entidade Pagamento tenha um 'id'
+      });
+    }
+
+    return payment;
   }
 }

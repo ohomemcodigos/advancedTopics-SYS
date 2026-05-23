@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -42,6 +42,12 @@ export class OrderController {
   @ApiOperation({ summary: 'Confirmar pagamento do pedido' })
   confirmPayment(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.orderService.confirmOrder(id);
+  }
+
+  @Delete(':id/cancelar')
+  @ApiOperation({ summary: 'Cancelar/abandonar um pedido' })
+  cancelOrder(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.orderService.cancelOrder(id);
   }
 
   @Get('user/:userId')

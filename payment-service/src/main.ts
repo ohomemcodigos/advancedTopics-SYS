@@ -3,23 +3,28 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(new PrometheusInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      transform: true,     
+      transform: true,
     }),
   );
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://rabbitmq:5672'], // Se estiver usando Docker, talvez seja amqp://rabbitmq:5672
-      queue: 'order_queue', // A fila que o order-service está usando
+      urls: ['amqp://localhost:5672'], // <-- Corrigido para localhost!
+      queue: 'order_queue', 
       queueOptions: {
         durable: true,
       },
@@ -38,8 +43,12 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  await app.listen(3000);
-  console.log(`Payment Service está rodando em: http://localhost:3000/api`);
+  // <-- Alterado para a porta 3003 para não conflitar com o Order Service na sua máquina local
+  await app.listen(3003); 
+
+  app
+    .get(Logger)
+    .log(`Payment Service está rodando em: http://localhost:3003/api`);
 }
 
 bootstrap();

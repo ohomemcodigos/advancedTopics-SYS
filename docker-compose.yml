@@ -1,5 +1,3 @@
-version: '3.8'
-
 # --- TEMPLATE REUTILIZÁVEL PARA AS APIS ---
 x-api-defaults: &api-defaults
   networks:
@@ -18,6 +16,13 @@ services:
       - MSSQL_SA_PASSWORD=MasterKey@123!
     volumes:
       - sql-data:/var/opt/mssql # Persistência dos dados
+    healthcheck:
+      # Tenta rodar um comando SQL simples para verificar se o banco responde
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P MasterKey@123! -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     <<: *api-defaults
 
   # --- REDIS (Cache Distribuído e Adapter WebSocket) ---
@@ -61,7 +66,7 @@ services:
       retries: 5
     <<: *api-defaults
 
-  # --- PROMETHEUS (Coleta de Métricas ) ---
+  # --- PROMETHEUS (Coleta de Métricas) ---
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: gestaopedidos-prometheus
@@ -71,7 +76,7 @@ services:
       - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     <<: *api-defaults
 
-  # --- GRAFANA (Dashboards Visuais ) ---
+  # --- GRAFANA (Dashboards Visuais) ---
   grafana:
     image: grafana/grafana:10.4.0
     container_name: gestaopedidos-grafana
@@ -93,6 +98,8 @@ services:
     container_name: gestaopedidos-catalog-api
     ports:
       - "5000:3000" 
+    environment:
+      - NODE_ENV=production
     depends_on:
       redis:
         condition: service_healthy
@@ -109,6 +116,8 @@ services:
       - "5002:3000" 
     environment:
       - JWT_SECRET=senha_doida_uaulegauuuu_567364537@#@
+      - NODE_ENV=production
+      - REDIS_HOST=redis
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -123,6 +132,8 @@ services:
     container_name: gestaopedidos-payment-api
     ports:
       - "5003:3000"
+    environment:
+      - NODE_ENV=production
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -135,6 +146,8 @@ services:
     container_name: gestaopedidos-user-api
     ports:
       - "5001:3000"
+    environment:
+      - NODE_ENV=production
     depends_on:
       sqlserver:
         condition: service_started

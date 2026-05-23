@@ -23,7 +23,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     TerminusModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'localhost',
+      host: 'sqlserver',
       port: 1433,
       username: 'sa',
       password: 'MasterKey@123!',

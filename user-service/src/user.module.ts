@@ -18,14 +18,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       },
     }),
     TerminusModule,
-    // Configuração do Banco de Dados para o Health Check
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'localhost',
+      host: 'sqlserver', // <-- Corrigido para o nome do serviço no Docker
       port: 1433,
       username: 'sa',
       password: 'MasterKey@123!',
-      database: 'user_db', // Banco de dados dedicado aos usuários
+      database: 'user_db',
       autoLoadEntities: true,
       synchronize: true,
       options: {

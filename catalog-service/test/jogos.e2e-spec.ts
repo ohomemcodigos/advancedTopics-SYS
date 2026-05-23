@@ -1,7 +1,9 @@
+import { describe, beforeAll, afterAll, it, expect } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { JogoCacheService } from '../src/domain/jogo/services/jogo-cache.service';
 
 describe('Jogos (E2E)', () => {
   let app: INestApplication;
@@ -9,7 +11,16 @@ describe('Jogos (E2E)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+    // Isola o Redis para permitir que as rotas HTTP de criação sejam testadas localmente
+    .overrideProvider(JogoCacheService)
+    .useValue({
+      get: async () => null,
+      set: async () => {},
+      invalidate: async () => {},
+      registrarMetricaTempo: () => {},
+    })
+    .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());

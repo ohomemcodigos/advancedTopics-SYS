@@ -1,16 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import { HealthCheck, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private memory: MemoryHealthIndicator,
+    private db: TypeOrmHealthIndicator,
   ) {}
 
   @Get('live')
   @HealthCheck()
   checkLiveness() {
+    // Retorna status 200 OK apenas confirmando que o processo está vivo
     return this.health.check([]);
   }
 
@@ -18,8 +19,8 @@ export class HealthController {
   @HealthCheck()
   checkReadiness() {
     return this.health.check([
-      // Testa se o serviço de usuários está consumindo mais de 150MB de memória
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      // Houve uma troca do MemoryHealthIndicator pela verificação real de Banco de Dados
+      () => this.db.pingCheck('database'),
     ]);
   }
 }

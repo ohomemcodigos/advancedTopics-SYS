@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health/health.controller';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -17,6 +18,20 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       },
     }),
     TerminusModule,
+    // Configuração do Banco de Dados para o Health Check
+    TypeOrmModule.forRoot({
+      type: 'mssql',
+      host: 'localhost',
+      port: 1433,
+      username: 'sa',
+      password: 'MasterKey@123!',
+      database: 'user_db', // Banco de dados dedicado aos usuários
+      autoLoadEntities: true,
+      synchronize: true,
+      options: {
+        encrypt: false,
+      },
+    }),
   ],
   controllers: [UserController, HealthController],
   providers: [UserService],

@@ -5,13 +5,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { RedisIoAdapter } from './gateways/redis.adapter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { MetricsInterceptor } from './interceptors/metrics.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
-  app.useGlobalInterceptors(new PrometheusInterceptor());
+  app.useGlobalInterceptors(new MetricsInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

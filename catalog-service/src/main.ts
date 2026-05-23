@@ -3,16 +3,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { MetricsInterceptor } from './interceptors/metrics.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
-  app.useGlobalInterceptors(new PrometheusInterceptor());
-  app.enableCors({ origin: '*', credentials: true });
-
+  app.useGlobalInterceptors(new MetricsInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor());
   app.enableCors({ origin: '*', credentials: true });
 
   app.useGlobalPipes(

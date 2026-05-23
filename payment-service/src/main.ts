@@ -4,13 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { MetricsInterceptor } from './interceptors/metrics.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
-  app.useGlobalInterceptors(new PrometheusInterceptor());
+  app.useGlobalInterceptors(new MetricsInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -23,7 +25,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'], // <-- Corrigido para localhost!
+      urls: ['amqp://localhost:5672'], 
       queue: 'order_queue', 
       queueOptions: {
         durable: true,
@@ -43,7 +45,6 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  // <-- Alterado para a porta 3003 para não conflitar com o Order Service na sua máquina local
   await app.listen(3003); 
 
   app

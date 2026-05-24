@@ -1,26 +1,32 @@
+// order-service/src/health/health.controller.ts
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
+import { HealthCheck, HealthCheckService, MicroserviceHealthIndicator } from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private db: TypeOrmHealthIndicator,
+    private microservice: MicroserviceHealthIndicator,
   ) {}
 
   @Get('live')
   @HealthCheck()
   checkLiveness() {
-    // Retorna status 200 OK apenas confirmando que o processo está vivo
-    return this.health.check([]);
+    return this.health.check([]); // Apenas verifica se a app responde
   }
 
   @Get('ready')
   @HealthCheck()
   checkReadiness() {
     return this.health.check([
-      // Houve uma troca do MemoryHealthIndicator pela verificação real de Banco de Dados
-      () => this.db.pingCheck('database'),
+      () => this.microservice.pingCheck('rabbitmq', { 
+        transport: 0, // Transport.RMQ
+        options: { urls: ['amqp://rabbitmq:5672'] } 
+      }),
+      () => this.microservice.pingCheck('redis', { 
+        transport: 1, // Transport.REDIS
+        options: { host: 'redis', port: 6379 } 
+      }),
     ]);
   }
 }

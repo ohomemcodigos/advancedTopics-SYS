@@ -1,4 +1,3 @@
-// order-service/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
@@ -10,13 +9,18 @@ import { OrderGateway } from './gateways/order.gateway';
 import { CreateOrderHandler } from './commands/create-order.handler';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './health/health.module';
-import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-prometheus';
+import { PrometheusModule, makeCounterProvider, makeHistogramProvider } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,
@@ -32,7 +36,7 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: ['amqp://rabbitmq:5672'],
           queue: 'order_queue',
           queueOptions: { durable: true },
         },
@@ -48,6 +52,12 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
     makeCounterProvider({
       name: 'orders_created_total',
       help: 'Total de pedidos criados',
+      labelNames: ['status'],
+    }),
+    makeHistogramProvider({
+      name: 'gestaopedidos_pedido_criacao_duracao_segundos',
+      help: 'Duração do fluxo de criação de pedido',
+      buckets: [0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0],
     }),
     makeCounterProvider({
       name: 'orders_cancelled_total',

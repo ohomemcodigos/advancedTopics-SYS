@@ -1,23 +1,22 @@
-// order-service/src/commands/create-order.handler.ts
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateOrderCommand } from './create-order.command';
-import { Inject } from '@nestjs/common';
 import { Counter, Histogram } from 'prom-client'; 
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { v4 as uuid } from 'uuid'; // Import necessário para gerar IDs
+import { v4 as uuid } from 'uuid';
 
 @CommandHandler(CreateOrderCommand)
 export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
   constructor(
-    @InjectMetric('gestaopedidos_pedidos_criados_total') 
-    private readonly counter: Counter<string>,
+    @InjectMetric('orders_created_total') 
+    private readonly counter: Counter,
+    
     @InjectMetric('gestaopedidos_pedido_criacao_duracao_segundos') 
-    private readonly histogram: Histogram<string>,
+    private readonly histogram: Histogram,
   ) {}
 
   async execute(command: CreateOrderCommand) {
     // 1. Inicia o cronômetro para medir a latência
-    const end = this.histogram.startTimer();
+    const end = this.histogram.startTimer({});
     
     try {
       const { dto } = command;
@@ -41,7 +40,7 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
       return novoPedido;
 
     } catch (error) {
-      // Varejador de erros | Incrementa um contador para cada erro
+      // Farejador | Incrementa um contador para cada erro
       this.counter.inc({ status: 'Erro' });
       throw error;
     }

@@ -38,7 +38,9 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       synchronize: true,
       options: {
         encrypt: false,
+        trustServerCertificate: true,
       },
+      connectionTimeout: 30000,
     }),
   ],
   controllers: [AppController, JogoController, HealthController],

@@ -25,7 +25,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/package*.json ./
 
 # Instalando apenas as dependências necessárias
-RUN npm install --only=production
+RUN npm ci --only=production
 
 # Define como o container será iniciado [cite: 64, 85, 201]
 ENTRYPOINT ["node", "dist/main.js"]

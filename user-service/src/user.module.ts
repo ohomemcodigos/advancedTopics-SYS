@@ -34,7 +34,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       synchronize: true,
       options: {
         encrypt: false,
+        trustServerCertificate: true,
       },
+      connectionTimeout: 30000,
     }),
   ],
   controllers: [UserController, HealthController],

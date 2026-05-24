@@ -1,25 +1,32 @@
+// order-service/src/health/health.controller.ts
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import { HealthCheck, HealthCheckService, MicroserviceHealthIndicator } from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private memory: MemoryHealthIndicator,
+    private microservice: MicroserviceHealthIndicator,
   ) {}
 
   @Get('live')
   @HealthCheck()
   checkLiveness() {
-    return this.health.check([]);
+    return this.health.check([]); // Apenas verifica se a app responde
   }
 
   @Get('ready')
   @HealthCheck()
   checkReadiness() {
     return this.health.check([
-      // Testa se o serviço de usuários está consumindo mais de 150MB de memória
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      () => this.microservice.pingCheck('rabbitmq', { 
+        transport: 0, // Transport.RMQ
+        options: { urls: ['amqp://rabbitmq:5672'] } 
+      }),
+      () => this.microservice.pingCheck('redis', { 
+        transport: 1, // Transport.REDIS
+        options: { host: 'redis', port: 6379 } 
+      }),
     ]);
   }
 }

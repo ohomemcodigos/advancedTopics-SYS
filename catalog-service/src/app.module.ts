@@ -15,6 +15,11 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,
@@ -23,16 +28,19 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     TerminusModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'localhost',
+      host: 'sqlserver',
       port: 1433,
       username: 'sa',
-      password: 'MasterKey@123!',
+      password: process.env.DB_PASSWORD || 'MasterKey@123!',
       database: 'catalog_db',
+      
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
       options: {
         encrypt: false,
+        trustServerCertificate: true,
       },
+      connectionTimeout: 30000,
     }),
   ],
   controllers: [AppController, JogoController, HealthController],

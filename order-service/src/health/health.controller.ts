@@ -26,7 +26,7 @@ export class HealthController {
       () => this.microservice.pingCheck<RmqOptions>('rabbitmq', {
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'], 
+          urls: ['amqp://rabbitmq:5672'], 
         },
       }),
       () => this.microservice.pingCheck<RedisOptions>('redis', {

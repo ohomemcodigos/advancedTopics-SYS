@@ -1,17 +1,31 @@
-version: '3.8'
+# --- TEMPLATE REUTILIZÁVEL PARA AS APIS ---
+x-api-defaults: &api-defaults
+  networks:
+    - gestaopedidos-network
+  restart: unless-stopped
 
 services:
-  # --- BANCO DE DADOS: CATALOG (SQL Server) ---
-  db-catalog:
+  # --- BANCO DE DADOS CENTRAL (SQL Server) ---
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: db-catalog-1
+    container_name: gestaopedidos-sqlserver
     ports:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=MasterKey@123!
-    networks:
-      - gestaopedidos-network
+    volumes:
+      - sql-data:/var/opt/mssql
+      - ./infra/init.sql:/home/mssql/init.sql
+      - ./infra/entrypoint.sh:/home/mssql/entrypoint.sh
+    entrypoint: ["/bin/bash", "/home/mssql/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'MasterKey@123!' -C -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    <<: *api-defaults
 
   # --- REDIS (Cache Distribuído e Adapter WebSocket) ---
   redis:
@@ -27,8 +41,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - gestaopedidos-network
+    <<: *api-defaults
 
   # --- REDIS INSIGHT (Interface Gráfica de Monitoramento) ---
   redisinsight:
@@ -38,9 +51,8 @@ services:
       - "5540:5540"
     depends_on:
       redis:
-        condition: service_healthy
-    networks:
-      - gestaopedidos-network
+        condition: service_started
+    <<: *api-defaults
 
   # --- RABBITMQ (Mensageria por Filas) ---
   rabbitmq:
@@ -48,14 +60,41 @@ services:
     container_name: gestaopedidos-rabbitmq
     ports:
       - "5672:5672"
-      - "15672:15672" # Painel administrativo do RabbitMQ
+      - "15672:15672" # Painel administrativo
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - gestaopedidos-network
+    <<: *api-defaults
+
+  # --- PROMETHEUS (Coleta de Métricas) ---
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: gestaopedidos-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    <<: *api-defaults
+
+  # --- GRAFANA (Dashboards Visuais) ---
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: gestaopedidos-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=gestaopedidos@2025
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    <<: *api-defaults
 
   # --- MICROSSERVIÇO: CATALOG SERVICE ---
   catalog-api:
@@ -63,12 +102,16 @@ services:
       context: ./catalog-service
     container_name: gestaopedidos-catalog-api
     ports:
-      - "5000:3000" # Mapeia a porta 5000 usada pelo Frontend
+      - "5000:3001" 
+    environment:
+      - NODE_ENV=production
+      - DB_PASSWORD=MasterKey@123!
     depends_on:
       redis:
+        condition: service_started
+      sqlserver:
         condition: service_healthy
-    networks:
-      - gestaopedidos-network
+    <<: *api-defaults
 
   # --- MICROSSERVIÇO: ORDER SERVICE ---
   order-api:
@@ -76,16 +119,20 @@ services:
       context: ./order-service
     container_name: gestaopedidos-order-api
     ports:
-      - "5002:3000" # Mapeia a porta 5002 usada pelo Frontend e WebSockets
+      - "5002:3000" 
     environment:
       - JWT_SECRET=senha_doida_uaulegauuuu_567364537@#@
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - DB_PASSWORD=MasterKey@123!
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
       redis:
+        condition: service_started
+      sqlserver:
         condition: service_healthy
-    networks:
-      - gestaopedidos-network
+    <<: *api-defaults
 
   # --- MICROSSERVIÇO: PAYMENT SERVICE ---
   payment-api:
@@ -94,11 +141,12 @@ services:
     container_name: gestaopedidos-payment-api
     ports:
       - "5003:3000"
+    environment:
+      - NODE_ENV=production
     depends_on:
       rabbitmq:
-        condition: service_healthy
-    networks:
-      - gestaopedidos-network
+        condition: service_started
+    <<: *api-defaults
 
   # --- MICROSSERVIÇO: USER SERVICE ---
   user-api:
@@ -107,14 +155,19 @@ services:
     container_name: gestaopedidos-user-api
     ports:
       - "5001:3000"
-    networks:
-      - gestaopedidos-network
+    environment:
+      - NODE_ENV=production
+      - DB_PASSWORD="MasterKey@123!"
+    depends_on:
+      sqlserver:
+        condition: service_started
+    <<: *api-defaults
 
-# Rede interna isolada para comunicação estável por nome do serviço
 networks:
   gestaopedidos-network:
     driver: bridge
 
-# Definição do volume nomeado para persistência do cache em disco
 volumes:
   redis-data:
+  sql-data:
+  grafana-data:

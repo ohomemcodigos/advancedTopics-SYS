@@ -5,13 +5,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { RedisIoAdapter } from './gateways/redis.adapter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { PrometheusInterceptor } from '@willsoto/nestjs-prometheus';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
-  app.useGlobalInterceptors(new PrometheusInterceptor());
+  // TimeoutInterceptor não tem dependências injetadas — pode usar new
+  app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -38,7 +39,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: ['amqp://rabbitmq:5672'],
       queue: 'payment_queue',
       queueOptions: { durable: true },
     },

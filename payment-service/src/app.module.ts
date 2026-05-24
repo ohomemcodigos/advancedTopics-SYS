@@ -16,6 +16,11 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,
@@ -28,7 +33,7 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
         name: 'RABBITMQ_CLIENT',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'], // <-- Corrigido para localhost para não dar erro de rede!
+          urls: ['amqp://rabbitmq:5672'],
           queue: 'payment_queue',
           queueOptions: { durable: true },
         },

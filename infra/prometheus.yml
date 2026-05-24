@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'gestaopedidos-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: 
+          - 'catalog-api:3001'
+          - 'order-api:3000'
+          - 'payment-api:3000'
+          - 'user-api:3000'

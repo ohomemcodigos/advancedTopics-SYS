@@ -6,7 +6,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   private client!: RedisClientType;
   private readonly PREFIX = 'GestaoPedidos:'; 
 
-  // Contadores locais em memória para estimativa de Hit Rate e tempos (Exigência do Roteiro)
+  // Contadores locais em memória para estimativa de Hit Rate e tempos
   private totalHits = 0;
   private totalMisses = 0;
   private totalTimeWithCache = 0;
@@ -15,8 +15,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   private countWithoutCache = 0;
 
   async onModuleInit() {
-    // Alterado de @redis:6379 para @localhost:6379 para funcionar na máquina local
-    this.client = createClient({ url: 'redis://:redissenha123@localhost:6379' });
+    this.client = createClient({ url: 'redis://:redissenha123@redis:6379' });
     this.client.on('error', (err) => console.error('[Redis Error]', err));
     await this.client.connect();
     console.log('🔌 Catalog-Service conectado com sucesso ao Redis Cache!');
@@ -58,7 +57,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     console.log(`[Cache INVALIDADO] Chave removida do Redis: ${fullKey}`);
   }
 
-  /**
+  /*
    * Regista a métrica de tempo de resposta da operação
    */
   registrarMetricaTempo(comCache: boolean, tempoMs: number): void {
@@ -71,7 +70,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
+  /*
    * Compila e expõe os dados estatísticos recolhidos
    */
   async obterEstatisticas() {

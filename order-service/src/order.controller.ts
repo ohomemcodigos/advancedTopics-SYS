@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Patch, Delete, ParseUUIDPipe } from
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { JwtService } from '@nestjs/jwt'; 
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -12,12 +12,19 @@ export class OrderController {
     private readonly jwtService: JwtService
   ) { }
 
-  // Teste
+  // Rota de teste — deve vir ANTES de qualquer rota com parâmetro dinâmico
   @Get('auth/mock-token')
   @ApiOperation({ summary: 'Gera um token JWT para testes do WebSocket' })
   getMockToken() {
     const token = this.jwtService.sign({ userId: '123e4567-e89b-12d3-a456-426614174000' });
     return { token };
+  }
+
+  // Rota /user/:userId deve vir ANTES de /:id para não ser capturada como UUID
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Listar pedidos de um usuário' })
+  findByUser(@Param('userId') userId: string) {
+    return this.orderService.findByUser(userId);
   }
 
   @Post()
@@ -48,11 +55,5 @@ export class OrderController {
   @ApiOperation({ summary: 'Cancelar/abandonar um pedido' })
   cancelOrder(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.orderService.cancelOrder(id);
-  }
-
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Listar pedidos de um usuário' })
-  findByUser(@Param('userId') userId: string) {
-    return this.orderService.findByUser(userId);
   }
 }

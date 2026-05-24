@@ -16,6 +16,11 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,

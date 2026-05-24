@@ -16,6 +16,7 @@ services:
       - MSSQL_SA_PASSWORD=MasterKey@123!
     volumes:
       - sql-data:/var/opt/mssql # Persistência dos dados
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       # Tenta rodar um comando SQL simples para verificar se o banco responde
       test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P MasterKey@123! -Q 'SELECT 1'"]

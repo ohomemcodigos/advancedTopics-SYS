@@ -18,7 +18,7 @@ export class HealthController {
   @HealthCheck()
   checkReadiness() {
     return this.health.check([
-      () => this.db.pingCheck('database'),
+      () => this.db.pingCheck('sqlserver', { timeout: 1500 }),
     ]);
   }
 }

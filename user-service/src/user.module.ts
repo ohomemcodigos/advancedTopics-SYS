@@ -12,6 +12,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,
@@ -20,11 +25,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     TerminusModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'sqlserver', // <-- Corrigido para o nome do serviço no Docker
+      host: 'sqlserver',
       port: 1433,
       username: 'sa',
       password: 'MasterKey@123!',
-      database: 'user_db',
+      database: 'master',
       autoLoadEntities: true,
       synchronize: true,
       options: {

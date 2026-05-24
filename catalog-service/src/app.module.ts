@@ -15,6 +15,11 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     PrometheusModule.register(),
     LoggerModule.forRoot({
       pinoHttp: {
+        genReqId: (req) => req.headers['x-correlation-id'] || req.id,
+        customProps: (req) => ({
+          correlationId: req.headers['x-correlation-id'],
+          environment: process.env.NODE_ENV,
+        }),
         transport: process.env.NODE_ENV !== 'production'
           ? { target: 'pino-pretty', options: { singleLine: true } }
           : undefined,
@@ -27,7 +32,8 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       port: 1433,
       username: 'sa',
       password: 'MasterKey@123!',
-      database: 'catalog_db',
+      database: 'master',
+      
       autoLoadEntities: true,
       synchronize: true,
       options: {

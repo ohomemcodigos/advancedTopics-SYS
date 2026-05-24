@@ -1,14 +1,15 @@
+// order-service/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { JwtModule } from '@nestjs/jwt'; // <-- Importação do JWT adicionada
+import { JwtModule } from '@nestjs/jwt';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { OrderEventsController } from './order-events.controller';
 import { OrderGateway } from './gateways/order.gateway';
 import { CreateOrderHandler } from './commands/create-order.handler';
 import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from './health/health.module'; // <-- Novo import do módulo de saúde
+import { HealthModule } from './health/health.module';
 import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-prometheus';
 
 @Module({
@@ -37,7 +38,7 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
         },
       },
     ]),
-    HealthModule, // <-- Módulo registrado aqui
+    HealthModule,
   ],
   controllers: [OrderController, OrderEventsController],
   providers: [

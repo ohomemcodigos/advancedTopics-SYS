@@ -1,12 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@Controller()
+@ApiTags('System')
+@Controller('api/v1')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  
+  @Get('version')
+  @ApiOperation({ summary: 'Retorna a versão atual da API' })
+  getVersion() {
+    return {
+      version: process.env.APP_VERSION || '0.1.0',
+      environment: process.env.NODE_ENV || 'Development',
+      buildDate: new Date().toISOString()
+    };
   }
 }

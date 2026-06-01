@@ -6,7 +6,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   private client!: RedisClientType;
   private readonly PREFIX = 'GestaoPedidos:'; 
 
-  // Contadores locais em memória para estimativa de Hit Rate e tempos (Exigência do Roteiro)
+  // Contadores locais em memória para estimativa de Hit Rate e tempos
   private totalHits = 0;
   private totalMisses = 0;
   private totalTimeWithCache = 0;
@@ -57,7 +57,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     console.log(`[Cache INVALIDADO] Chave removida do Redis: ${fullKey}`);
   }
 
-  /**
+  /*
    * Regista a métrica de tempo de resposta da operação
    */
   registrarMetricaTempo(comCache: boolean, tempoMs: number): void {
@@ -70,7 +70,7 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
+  /*
    * Compila e expõe os dados estatísticos recolhidos
    */
   async obterEstatisticas() {

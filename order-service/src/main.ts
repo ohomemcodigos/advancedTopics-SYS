@@ -5,11 +5,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { RedisIoAdapter } from './gateways/redis.adapter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  // TimeoutInterceptor não tem dependências injetadas — pode usar new
+  app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

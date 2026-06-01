@@ -4,11 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { MetricsInterceptor } from './interceptors/metrics.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(new MetricsInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,8 +25,8 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://rabbitmq:5672'], // Se estiver usando Docker, talvez seja amqp://rabbitmq:5672
-      queue: 'order_queue', // A fila que o order-service está usando
+      urls: ['amqp://rabbitmq:5672'],
+      queue: 'order_queue',
       queueOptions: {
         durable: true,
       },

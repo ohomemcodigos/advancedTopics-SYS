@@ -28,7 +28,7 @@ describe('JogoCacheService com Testcontainers (Integração)', () => {
     redisClient = createClient({ url: connectionString }) as RedisClientType;
     await redisClient.connect();
     
-    (cacheService as any).client = redisClient;
+    (cacheService as JogoCacheService & { client: RedisClientType }).client = redisClient;
     
     console.log(`✅ Testcontainers pronto e conectado em: ${connectionString}`);
   }, 45000);

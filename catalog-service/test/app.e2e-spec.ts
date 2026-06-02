@@ -15,7 +15,7 @@ describe('AppController (e2e)', () => {
     })
     .overrideProvider(JogoCacheService)
     .useValue({
-      get: async () => null,
+      get: () => Promise.resolve(null),
       set: async () => {},
       invalidate: async () => {},
       registrarMetricaTempo: () => {},
@@ -27,7 +27,7 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', async () => {
-    return request(app.getHttpServer())
+    return await request(app.getHttpServer())
       .get('/')
       .expect(200)
       .expect('Hello World!');

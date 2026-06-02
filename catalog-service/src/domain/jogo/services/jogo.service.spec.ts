@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JogoService } from './jogo.service';
 import { JogoCacheService } from './jogo-cache.service';
 import { NotFoundException } from '@nestjs/common';
+import { CreateJogoDto } from '../dto/create-jogo.dto';
 
 describe('JogoService (Unitário)', () => {
   let service: JogoService;
@@ -31,9 +32,9 @@ describe('JogoService (Unitário)', () => {
     service = module.get<JogoService>(JogoService);
   });
 
-  const mockDto: any = {
+  const mockCreateJogoDto: CreateJogoDto = {
     titulo: 'Hollow Knight',
-    descricao: 'Aventura épica',
+    descricao: 'Aventura épica em um mundo de insetos',
     desenvolvedora: 'Team Cherry',
     preco: { valor: 120, moeda: 'BRL' },
     categoria: { nome: 'Metroidvania' },
@@ -51,11 +52,11 @@ describe('JogoService (Unitário)', () => {
   });
 
   it('deve cadastrar e encontrar um jogo', async () => {
-    const criado = await service.create(mockDto);
+    const criado = await service.create(mockCreateJogoDto);
     const encontrado = await service.findOne(criado.jogoId);
     
     expect(encontrado).toBeDefined();
-    expect(encontrado.titulo).toBe(mockDto.titulo);
+    expect(encontrado!.titulo).toBe(mockCreateJogoDto.titulo);
   });
 
   it('deve lançar NotFoundException ao buscar ID inexistente', async () => {
@@ -63,8 +64,8 @@ describe('JogoService (Unitário)', () => {
   });
 
   it('deve atualizar um jogo com sucesso', async () => {
-    const criado = await service.create(mockDto);
-    const updateDto = { ...mockDto, titulo: 'Silksong' };
+    const criado = await service.create(mockCreateJogoDto);
+    const updateDto: CreateJogoDto = { ...mockCreateJogoDto, titulo: 'Silksong' };
 
     const atualizado = await service.update(criado.jogoId, updateDto);
 
@@ -72,7 +73,7 @@ describe('JogoService (Unitário)', () => {
   });
 
   it('deve garantir que o jogo foi removido da lista', async () => {
-    const criado = await service.create(mockDto);
+    const criado = await service.create(mockCreateJogoDto);
 
     await service.delete(criado.jogoId);
 

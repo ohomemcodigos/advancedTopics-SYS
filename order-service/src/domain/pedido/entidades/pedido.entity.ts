@@ -1,7 +1,5 @@
 import { ItemPedido } from '../objetos_de_valor/item_pedido.vo';
 
-// Enum de status — substitui o VO com string pura para simplificar e
-// alinhar com o que o spec espera: pedido.status === StatusPedido.Pendente
 export enum StatusPedido {
   Pendente = 'Pendente',
   Pago = 'Pago',
@@ -49,10 +47,12 @@ export class Pedido {
     }
     this.status = StatusPedido.Cancelado;
   }
-  
-get valorTotal(): number {
-  return this.itens.reduce(
-    (total: number, item: ItemPedido) => total + item.precoUnitario * item.quantidade,
-    0,
-  );
+
+  get valorTotal(): number {
+    return this.itens.reduce(
+      (total: number, item: ItemPedido) =>
+        total + item.precoUnitario * item.quantidade,
+      0,
+    );
+  }
 }

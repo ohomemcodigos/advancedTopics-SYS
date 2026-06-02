@@ -19,7 +19,7 @@ describe('Usuario', () => {
     it('deve conter credenciais validas de autenticacao', () => {
         const credenciais: Credenciais = new Credenciais('teste@email.com', 'hash');
 
-        expect(credenciais.email).toBe('teste@email.com');
-        expect(credenciais.senhaHash).toBe('hash');
+        expect(credenciais.email as string).toBe('teste@email.com');
+        expect(credenciais.senhaHash as string).toBe('hash');
     });
 });

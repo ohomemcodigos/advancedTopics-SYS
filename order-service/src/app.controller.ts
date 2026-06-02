@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Orders')

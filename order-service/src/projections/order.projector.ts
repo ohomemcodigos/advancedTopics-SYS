@@ -1,43 +1,46 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { OrderCreatedEvent } from '../events/order-created.event';
+
+interface ProcessedEventRow {
+  '1': number;
+}
 
 @EventsHandler(OrderCreatedEvent)
 export class OrderProjector implements IEventHandler<OrderCreatedEvent> {
   constructor(private readonly dataSource: DataSource) {}
 
-  async handle(event: OrderCreatedEvent) {
+  async handle(event: OrderCreatedEvent): Promise<void> {
     const { orderId, userId } = event;
-    const messageId = orderId; 
+    const messageId: string = orderId;
 
-    const queryRunner = this.dataSource.createQueryRunner();
+    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-        const sqlVerificacao = `SELECT 1 FROM ProcessedEvents WHERE event_id = @0`;
-        const processado: Array<any> = await queryRunner.query(sqlVerificacao, [messageId]);
+      const sqlVerificacao = `SELECT 1 FROM ProcessedEvents WHERE event_id = @0`;
+      const processado: ProcessedEventRow[] = await queryRunner.query(
+        sqlVerificacao,
+        [messageId],
+      );
 
-        if (processado?.length > 0) {
-          await queryRunner.rollbackTransaction();
-          return; 
-    }
+      if (processado && processado.length > 0) {
+        await queryRunner.rollbackTransaction();
+        return;
+      }
 
-      // 2. Inserir no Read Model (Ajustado para @0, @1 e GETDATE())
-      // Use os nomes das colunas exatamente como estão na sua migration SQL
       const sqlInsertPedido = `
-          INSERT INTO PedidosReadModel (id, cliente_id, status, total, criado_em)
-          VALUES (@0, @1, 'PENDING', 0, GETDATE())
+        INSERT INTO PedidosReadModel (id, cliente_id, status, total, criado_em)
+        VALUES (@0, @1, 'PENDING', 0, GETDATE())
       `;
       await queryRunner.query(sqlInsertPedido, [orderId, userId]);
 
-      // 3. Marcar evento como processado
       const sqlInsertEvento = `INSERT INTO ProcessedEvents (event_id, processado_em) VALUES (@0, GETDATE())`;
       await queryRunner.query(sqlInsertEvento, [messageId]);
 
       await queryRunner.commitTransaction();
       console.log(`Pedido ${orderId} projetado com sucesso!`);
-      
     } catch (err) {
       await queryRunner.rollbackTransaction();
       console.error('Erro ao projetar pedido:', err);

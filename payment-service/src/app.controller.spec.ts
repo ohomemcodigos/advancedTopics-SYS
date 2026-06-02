@@ -11,7 +11,7 @@ describe('AppController', () => {
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    appController = app.get<AppController>(AppController) as AppController;
 });
 
   it('should be defined', () => {

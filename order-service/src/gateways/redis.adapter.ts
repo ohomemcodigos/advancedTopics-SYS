@@ -1,29 +1,38 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { createClient } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import { ServerOptions } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
+import { createAdapter, RedisAdapter } from '@socket.io/redis-adapter';
 
 export class RedisIoAdapter extends IoAdapter {
-  private adapterConstructor: ReturnType<typeof createAdapter>;
+  private adapterConstructor: RedisAdapter | null = null;
+  private pubClient: RedisClientType | null = null;
+  private subClient: RedisClientType | null = null;
 
   async connectToRedis(): Promise<void> {
-    const redisHost = process.env.REDIS_HOST || 'redis';
-    
-    const pubClient = createClient({ 
+    const redisHost: string = process.env.REDIS_HOST || 'redis';
+
+    this.pubClient = createClient({
       url: `redis://${redisHost}:6379`,
-      password: 'redissenha123'
+      password: 'redissenha123',
     });
-    
-    const subClient = pubClient.duplicate();
 
-    await Promise.all([pubClient.connect(), subClient.connect()]);
+    this.subClient = this.pubClient.duplicate();
 
-    this.adapterConstructor = createAdapter(pubClient, subClient);
+    await Promise.all([
+      this.pubClient.connect(),
+      this.subClient.connect(),
+    ]);
+
+    if (this.pubClient && this.subClient) {
+      this.adapterConstructor = createAdapter(this.pubClient, this.subClient);
+    }
   }
 
   createIOServer(port: number, options?: ServerOptions): any {
     const server = super.createIOServer(port, options);
-    (server as any).adapter(this.adapterConstructor);
+    if (this.adapterConstructor) {
+      server.adapter(this.adapterConstructor);
+    }
     return server;
   }
 }

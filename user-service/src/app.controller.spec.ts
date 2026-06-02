@@ -12,7 +12,12 @@ describe('AppController', () => {
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    const controller = app.get(AppController);
+    if (!controller) {
+      throw new Error('AppController not found');
+    } 
+    appController = controller as AppController;
+
   });
 
   it('should be defined', () => {

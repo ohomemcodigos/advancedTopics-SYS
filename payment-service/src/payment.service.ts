@@ -26,8 +26,10 @@ export class PaymentService {
     });
 
     try {
-      const valorTotal = new Dinheiro(valor);
-      const metodo = new MetodoPagamento(tipo, 'Detalhes da transação');
+      const metodo = new MetodoPagamento(
+      tipo as 'Cartão de Crédito' | 'Boleto' | 'Pix' | 'Carteira Digital', 
+      'Detalhes da transação'
+      );
 
       const novoPagamento = new Pagamento(
         randomUUID(),

@@ -12,4 +12,8 @@ export class Usuario {
   ) {
     if (!usuarioId) throw new Error('ID do usuário é obrigatório.');
   }
+
+  get id(): string {
+    return this.usuarioId;
+  }
 }

@@ -20,13 +20,13 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED',
 }
 
-interface OrderItem {
+export interface OrderItem {
   id: string;
   titulo: string;
   preco: number;
 }
 
-interface Order {
+export interface Order {
   id: string;
   userId: string;
   itens: OrderItem[];
@@ -36,7 +36,7 @@ interface Order {
   createdAt: Date;
 }
 
-interface ConfirmOrderResponse {
+export interface ConfirmOrderResponse {
   message: string;
   order: Order;
   payment: {

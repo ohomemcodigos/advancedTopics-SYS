@@ -1,8 +1,8 @@
 /* eslint-disable */
 import { Usuario } from './usuario.entity';
-import { Credenciais } from '../objetos_de_valor/credenciais';
-import { Regiao } from '../objetos_de_valor/regiao';
-import { Perfil } from '../objetos_de_valor/perfil';
+import { Credenciais } from '../objetos_de_valor/credenciais.vo';
+import { Regiao } from '../objetos_de_valor/regiao.vo';
+import { Perfil } from '../objetos_de_valor/perfil.vo';
 import { describe, it, expect } from '@jest/globals';
 
 describe('Usuario', () => {
@@ -13,12 +13,14 @@ describe('Usuario', () => {
     );
     const regiao: Regiao = new Regiao('Brasil');
     const perfil: Perfil = new Perfil('João', 'joao_dev', 'url_avatar.png');
+    const dataCriacao: Date = new Date();
 
     const usuario: Usuario = new Usuario(
       '123e4567-e89b-12d3-a456-426614174000',
+      dataCriacao,
       credenciais,
-      regiao,
       perfil,
+      regiao,
     );
 
     expect(usuario.id).toBe('123e4567-e89b-12d3-a456-426614174000');

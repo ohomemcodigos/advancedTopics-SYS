@@ -46,7 +46,7 @@ async function bootstrap() {
   await app.startAllMicroservices();
 
   await app.listen(3000);
-
+  
   app
     .get(Logger)
     .log(`Payment Service está rodando em: http://localhost:3000/api`);

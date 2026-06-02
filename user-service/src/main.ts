@@ -32,7 +32,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3002);
+  await app.listen(3000);;
   app.get(Logger).log(`User Service está rodando em: http://localhost:3002/api`);
 }
 

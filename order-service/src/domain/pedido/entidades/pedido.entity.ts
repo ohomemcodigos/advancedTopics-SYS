@@ -55,7 +55,8 @@ export class Pedido {
   public get valorTotal(): number {
     return this.itens.reduce<number>(
       (total: number, item: ItemPedido): number => {
-        return total + Number(item.precoUnitario) * Number(item.quantidade);
+        // Como é um jogo digital, basta somar o preço unitário
+        return total + Number(item.precoUnitario);
       },
       0,
     );

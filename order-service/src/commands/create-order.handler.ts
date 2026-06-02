@@ -21,7 +21,8 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
     private readonly histogram: Histogram<string>,
   ) {}
 
-  execute(command: CreateOrderCommand): CreatedOrder {
+  /* eslint-disable-next-line @typescript-eslint/require-await */
+  async execute(command: CreateOrderCommand): Promise<CreatedOrder> {
     const end = this.histogram.startTimer({});
 
     try {

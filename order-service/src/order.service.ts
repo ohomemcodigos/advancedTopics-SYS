@@ -128,8 +128,8 @@ export class OrderService {
     }
     return order;
   }
-
-  confirmOrder(id: string): ConfirmOrderResponse {
+  /* eslint-disable-next-line @typescript-eslint/require-await */
+  async confirmOrder(id: string): Promise<ConfirmOrderResponse> {
     this.logger.log({
       msg: 'Iniciando confirmação de pedido',
       action: 'confirmOrder',

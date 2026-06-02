@@ -27,15 +27,17 @@ export class PaymentService {
 
     try {
       const metodo = new MetodoPagamento(
-      tipo as 'Cartão de Crédito' | 'Boleto' | 'Pix' | 'Carteira Digital', 
-      'Detalhes da transação'
+        tipo as 'Cartão de Crédito' | 'Boleto' | 'Pix' | 'Carteira Digital', 
+        'Detalhes da transação'
       );
+
+      const valorTransacao = new Dinheiro(valor, 'BRL');
 
       const novoPagamento = new Pagamento(
         randomUUID(),
         pedidoId,
-        valorTotal,
         metodo,
+        valorTransacao,
       );
 
       this.payments.push(novoPagamento);
@@ -43,7 +45,7 @@ export class PaymentService {
       this.logger.log({
         msg: 'Pagamento processado com sucesso',
         action: 'processPayment',
-        pagamentoId: novoPagamento.pagamentoId,
+        pagamentoId: novoPagamento.id,
         pedidoId: pedidoId,
       });
       return novoPagamento;
@@ -79,7 +81,7 @@ export class PaymentService {
         msg: 'Pagamento encontrado',
         action: 'getPaymentByOrder',
         pedidoId: orderId,
-        pagamentoId: payment.pagamentoId,
+        pagamentoId: payment.id,
       });
     }
 

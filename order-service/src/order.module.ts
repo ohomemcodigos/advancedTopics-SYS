@@ -6,10 +6,12 @@ import { ListOrdersByUserHandler } from './queries/list-orders-by-user.handler';
 import { GetOrderByIdHandler } from './queries/get-order-by-id.handler';
 import { OrderProjector } from './projections/order.projector';
 import { OrderGateway } from './gateways/order.gateway';
+import { VersionController } from './version.controller';
 
 @Module({
   imports: [CqrsModule],
-  controllers: [OrderController],
+  controllers: [OrderController, VersionController],
+
   providers: [
     CreateOrderHandler,
     ListOrdersByUserHandler,

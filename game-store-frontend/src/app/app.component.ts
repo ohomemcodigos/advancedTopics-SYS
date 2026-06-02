@@ -1,11 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PedidoSignalRService } from './pedido-signalr.service';
+import { FooterComponent } from './components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FooterComponent],
   styles: [`
     .main-wrapper { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e2e; color: #cdd6f4; padding: 20px; min-height: 100vh; }
     .container { max-width: 800px; margin: 0 auto; }
@@ -60,10 +61,7 @@ import { PedidoSignalRService } from './pedido-signalr.service';
             <div>-------------------</div>
             <div *ngFor="let log of signalrService.logsDoSistema()">{{ log }}</div>
           </div>
-        </div>
-      </div>
-    </div>
-  `
+        </div> </div> <app-footer></app-footer> </div> `
 })
 export class AppComponent implements OnInit {
   // Lógica de Componente

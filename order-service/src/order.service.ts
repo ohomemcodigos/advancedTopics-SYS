@@ -24,6 +24,8 @@ export class OrderService {
 
   constructor(
     @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
+    
+    private readonly logger = new Logger(OrderService.name);
     private readonly orderGateway: OrderGateway,
     private readonly eventBus: EventBus,
     @InjectMetric('orders_created_total') private readonly ordersCreatedCounter: Counter<string>,
@@ -105,6 +107,8 @@ export class OrderService {
       observacao: 'Pagamento confirmado com sucesso!',
       alteradoEm: new Date(),
     });
+    
+    this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
 
     this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
 

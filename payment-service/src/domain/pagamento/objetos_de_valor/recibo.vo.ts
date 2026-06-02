@@ -8,4 +8,10 @@ export class Recibo {
     public readonly valorTotal: Dinheiro,
     public readonly metodoPagamento: MetodoPagamento,
   ) {}
+  get dataProcessamento(): Date {
+    return this.dataEmissao;
+  }
+  get comprovante(): string {
+    return this.numeroRecibo;
+  }
 }

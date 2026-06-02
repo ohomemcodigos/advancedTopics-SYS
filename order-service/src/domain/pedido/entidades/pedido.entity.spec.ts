@@ -5,8 +5,9 @@ import { describe, it, expect } from '@jest/globals';
 
 describe('Pedido', () => {
   it('deve criar um pedido associado a um usuario externo com itens', () => {
-    const item1: ItemPedido = new ItemPedido('SKU-123', 1, 199.9);
-    const item2: ItemPedido = new ItemPedido('SKU-456', 2, 50.0);
+    // Removido o parâmetro de quantidade (agora apenas ID e Preço)
+    const item1: ItemPedido = new ItemPedido('SKU-123', 199.9);
+    const item2: ItemPedido = new ItemPedido('SKU-456', 50.0);
 
     const pedido: Pedido = new Pedido('PED-001', 'USR-999', [item1, item2]);
 
@@ -16,7 +17,8 @@ describe('Pedido', () => {
   });
 
   it('deve registrar o preco unitario no momento da compra', () => {
-    const item: ItemPedido = new ItemPedido('SKU-123', 1, 199.9);
+    // Removido o parâmetro de quantidade
+    const item: ItemPedido = new ItemPedido('SKU-123', 199.9);
 
     expect(item.precoUnitario).toBe(199.9);
   });
@@ -45,8 +47,9 @@ describe('Pedido', () => {
   });
 
   it('deve calcular o valor total corretamente', () => {
-    const item1: ItemPedido = new ItemPedido('SKU-123', 2, 50.0);
-    const item2: ItemPedido = new ItemPedido('SKU-456', 1, 100.0);
+    // Ajustado para 100.0 em cada para que a soma total bata 200.0 sem precisar da propriedade 'quantidade'
+    const item1: ItemPedido = new ItemPedido('SKU-123', 100.0);
+    const item2: ItemPedido = new ItemPedido('SKU-456', 100.0);
 
     const pedido: Pedido = new Pedido('PED-002', 'USR-001', [item1, item2]);
 

@@ -10,4 +10,7 @@ export class MetodoPagamento {
     if (!tipo) throw new Error('Tipo de pagamento é obrigatório.');
     if (!detalhes) throw new Error('Detalhes do pagamento são obrigatórios.');
   }
+  get tipoPagamento(): string {
+    return this.tipo;
+  }
 }

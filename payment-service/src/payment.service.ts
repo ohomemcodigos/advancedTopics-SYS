@@ -27,8 +27,8 @@ export class PaymentService {
 
     try {
       const metodo = new MetodoPagamento(
-        tipo as 'Cartão de Crédito' | 'Boleto' | 'Pix' | 'Carteira Digital', 
-        'Detalhes da transação'
+        tipo as 'Cartão de Crédito' | 'Boleto' | 'Pix' | 'Carteira Digital',
+        'Detalhes da transação',
       );
 
       const valorTransacao = new Dinheiro(valor, 'BRL');
@@ -36,8 +36,8 @@ export class PaymentService {
       const novoPagamento = new Pagamento(
         randomUUID(),
         pedidoId,
-        metodo,
         valorTransacao,
+        metodo,
       );
 
       this.payments.push(novoPagamento);
@@ -45,17 +45,21 @@ export class PaymentService {
       this.logger.log({
         msg: 'Pagamento processado com sucesso',
         action: 'processPayment',
-        pagamentoId: novoPagamento.id,
+        pagamentoId: novoPagamento.pagamentoId,
         pedidoId: pedidoId,
       });
       return novoPagamento;
     } catch (error) {
       this.paymentsProcessedCounter.inc({ status: 'failure' });
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
       this.logger.error({
         msg: 'Falha ao processar pagamento',
         action: 'processPayment',
         pedidoId: pedidoId,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       });
       throw error;
     }
@@ -81,7 +85,7 @@ export class PaymentService {
         msg: 'Pagamento encontrado',
         action: 'getPaymentByOrder',
         pedidoId: orderId,
-        pagamentoId: payment.id,
+        pagamentoId: payment.pagamentoId,
       });
     }
 

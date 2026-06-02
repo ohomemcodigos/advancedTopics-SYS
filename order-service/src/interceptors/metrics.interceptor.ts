@@ -2,6 +2,7 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Counter, Histogram } from 'prom-client';
+import { Request, Response } from 'express';
 
 const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
@@ -18,10 +19,9 @@ const httpRequestDuration = new Histogram({
 
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const req = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const req = context.switchToHttp().getRequest<Request>();
     
-    // Ignora chamadas assíncronas do RabbitMQ ou WebSockets que não possuem formato HTTP
     if (!req || !req.method) return next.handle();
 
     const method = req.method;
@@ -29,13 +29,13 @@ export class MetricsInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        const res = context.switchToHttp().getResponse();
-        const status = res.statusCode ? res.statusCode.toString() : '200';
+        const res = context.switchToHttp().getResponse<Response>();
+        const status = res.statusCode?.toString() ?? '200';
         httpRequestsTotal.inc({ method, status });
         timer({ method, status });
       }),
-      catchError((err) => {
-        const status = err.status ? err.status.toString() : '500';
+      catchError((err: { status?: number }) => {
+        const status = err.status?.toString() ?? '500';
         httpRequestsTotal.inc({ method, status });
         timer({ method, status });
         return throwError(() => err);

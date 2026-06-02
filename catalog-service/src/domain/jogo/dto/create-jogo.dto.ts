@@ -6,8 +6,7 @@ import {
   IsPositive, 
   MinLength, 
   ValidateNested, 
-  IsDefined,
-  IsEnum
+  IsDefined
 } from 'class-validator';
 import { Type } from 'class-transformer';
 

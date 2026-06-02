@@ -1,5 +1,4 @@
-// Substitua os imports errados por este:
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Pagamento } from './domain/pagamento/entidades/pagamento.entity';
 import { MetodoPagamento } from './domain/pagamento/objetos_de_valor/metodo_pagamento.vo';
 import { Dinheiro } from './domain/pagamento/objetos_de_valor/dinheiro.vo';
@@ -17,8 +16,7 @@ export class PaymentService {
     private readonly paymentsProcessedCounter: Counter<string>,
   ) {}
 
-  // Ajuste o método para usar a entidade Pagamento que você já tem
-  processPayment(pedidoId: string, valor: number, tipo: any): Pagamento {
+  processPayment(pedidoId: string, valor: number, tipo: string): Pagamento {
     this.logger.log({
       msg: 'Iniciando processamento de pagamento',
       action: 'processPayment',
@@ -53,7 +51,7 @@ export class PaymentService {
         msg: 'Falha ao processar pagamento',
         action: 'processPayment',
         pedidoId: pedidoId,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -79,7 +77,7 @@ export class PaymentService {
         msg: 'Pagamento encontrado',
         action: 'getPaymentByOrder',
         pedidoId: orderId,
-        pagamentoId: payment.pagamentoId, // Supondo que a entidade Pagamento tenha um 'id'
+        pagamentoId: payment.pagamentoId,
       });
     }
 

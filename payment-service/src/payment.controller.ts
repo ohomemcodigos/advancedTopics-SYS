@@ -3,7 +3,7 @@ import { PaymentService } from './payment.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
-import { ProcessPaymentCommand } from './commands/process-payment.command'; // <-- Import adicionado
+import { ProcessPaymentCommand } from './commands/process-payment.command';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -22,10 +22,10 @@ export class PaymentController {
   }
 
   @EventPattern('order_created') 
-  async handleOrderCreated(@Payload() data: any) {
+  async handleOrderCreated(@Payload() data: { pedidoId: string; valor: number }) {
     console.log('📦 Evento recebido via RabbitMQ no Payment Service:', data);
-    return this.commandBus.execute(
+    return await this.commandBus.execute(
       new ProcessPaymentCommand(data.pedidoId, data.valor),
     );
   }
-} 
+}

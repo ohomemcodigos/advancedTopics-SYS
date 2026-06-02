@@ -8,7 +8,7 @@ export class GetOrderByIdHandler implements IQueryHandler<GetOrderByIdQuery> {
   // 1. Injeção do DataSource no construtor
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(query: GetOrderByIdQuery) {
+  async execute(query: GetOrderByIdQuery): Promise<any> {
     const { id } = query;
 
     // A string SQL que você já tem pronta (exemplo):
@@ -16,9 +16,9 @@ export class GetOrderByIdHandler implements IQueryHandler<GetOrderByIdQuery> {
 
     // 2. Execução da Query usando o DataSource
     // No SQL Server (MSSQL), os parâmetros podem ser @0, @1 ou apenas passados no array
-    const result = await this.dataSource.query(sql, [id]);
+    const result: Array<any> = await this.dataSource.query(sql, [id]);
 
     // Retorna o primeiro resultado encontrado
-    return result[0];
+    return result?.[0] ?? null;
   }
 }

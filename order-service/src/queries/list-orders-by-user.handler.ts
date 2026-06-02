@@ -7,7 +7,7 @@ export class ListOrdersByUserHandler implements IQueryHandler<ListOrdersByUserQu
   
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(query: ListOrdersByUserQuery) {
+  async execute(query: ListOrdersByUserQuery): Promise<any[]> {
     const { userId } = query;
 
     // Use a variável sqlPaginado que já está no seu arquivo

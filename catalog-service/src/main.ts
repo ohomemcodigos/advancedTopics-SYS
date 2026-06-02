@@ -38,4 +38,7 @@ async function bootstrap() {
   app.get(Logger).log(`Catalog Service está rodando em: http://localhost:3001/api`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Failed to start application:', err);
+  process.exit(1);
+});

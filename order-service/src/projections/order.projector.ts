@@ -15,14 +15,13 @@ export class OrderProjector implements IEventHandler<OrderCreatedEvent> {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Verificar idempotência (Ajustado para @0 e nome da coluna da migration)
-      const sqlVerificacao = `SELECT 1 FROM ProcessedEvents WHERE event_id = @0`;
-      const processado = await queryRunner.query(sqlVerificacao, [messageId]);
+        const sqlVerificacao = `SELECT 1 FROM ProcessedEvents WHERE event_id = @0`;
+        const processado: Array<any> = await queryRunner.query(sqlVerificacao, [messageId]);
 
-      if (processado.length > 0) {
-        await queryRunner.rollbackTransaction();
-        return; 
-      }
+        if (processado?.length > 0) {
+          await queryRunner.rollbackTransaction();
+          return; 
+    }
 
       // 2. Inserir no Read Model (Ajustado para @0, @1 e GETDATE())
       // Use os nomes das colunas exatamente como estão na sua migration SQL

@@ -52,4 +52,7 @@ async function bootstrap() {
     .log(`Payment Service está rodando em: http://localhost:3000/api`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Failed to start Payment Service:', err);
+  process.exit(1);
+});

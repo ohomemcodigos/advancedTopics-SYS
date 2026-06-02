@@ -19,10 +19,9 @@ function aguardarEvento(socket: Socket, evento: string, timeoutMs = 8000): Promi
 async function rodarTeste() {
   console.log('\n🧪 Iniciando teste de integração WebSocket...\n');
 
-  // Obtem o token de teste
   console.log('🔑 Passo 0: Obtendo Token JWT de teste...');
   const tokenRes = await axios.get(`${ORDER_API}/orders/auth/mock-token`);
-  const token = tokenRes.data.token;
+  const token: string = tokenRes.data.token;
   console.log('   ✅ Token obtido!\n');
 
   console.log('📦 Passo 1: Criando pedido via POST /orders...');
@@ -32,15 +31,15 @@ async function rodarTeste() {
     metodoPagamento: 'PIX',
   });
 
-  const pedido = respostaCriacao.data;
-  const pedidoId: string = (pedido as any).id;
+  const pedido: any = respostaCriacao.data;
+  const pedidoId: string = pedido?.id ?? '';
 
   console.log(`   ✅ Pedido criado com sucesso! ID: ${pedidoId}\n`);
 
   console.log('🔌 Passo 2: Conectando cliente WebSocket com JWT...');
-  const socket = io(WS_URL, {
+  const socket: Socket = io(WS_URL, {
     transports: ['websocket'],
-    auth: { token } // O Token é enviado aqui
+    auth: { token }
   });
 
   await new Promise<void>((resolve, reject) => {
@@ -48,7 +47,7 @@ async function rodarTeste() {
       console.log(`   ✅ WebSocket autenticado e conectado! Socket ID: ${socket.id}\n`);
       resolve();
     });
-    socket.on('connect_error', (err) => {
+    socket.on('connect_error', (err: any) => {
       reject(new Error(`Falha de JWT ou Conexão: ${err.message}`));
     });
     setTimeout(() => reject(new Error('Timeout na conexão WebSocket')), 5000);
@@ -57,7 +56,7 @@ async function rodarTeste() {
   console.log(`📡 Passo 3: Assinando pedido ${pedidoId}...`);
   socket.emit('AssinarPedido', pedidoId);
 
-  const confirmacao = await aguardarEvento(socket, 'AssinaturaConfirmada');
+  await aguardarEvento(socket, 'AssinaturaConfirmada');
   console.log(`   ✅ Assinatura confirmada pelo servidor!\n`);
 
   console.log(`💳 Passo 4: Confirmando pagamento via PATCH...`);
@@ -67,9 +66,9 @@ async function rodarTeste() {
   console.log(`   ✅ Pagamento confirmado via HTTP!\n`);
 
   console.log('⚡ Passo 5: Aguardando notificação via WebSocket...');
-  const notificacao = await promessaNotificacao;
+  const notificacao: any = await promessaNotificacao;
 
-  console.log(`   ✅ Notificação recebida! Novo Status: ${notificacao.novoStatus}\n`);
+  console.log(`   ✅ Notificação recebida! Novo Status: ${notificacao?.novoStatus}\n`);
   console.log('✅ TESTE PASSOU — Percurso completo funcionando e blindado com JWT!\n');
 
   socket.disconnect();
@@ -77,6 +76,6 @@ async function rodarTeste() {
 }
 
 rodarTeste().catch((err) => {
-  console.error('\n❌ TESTE FALHOU:', err.message);
+  console.error('\n❌ TESTE FALHOU:', err instanceof Error ? err.message : 'Unknown error');
   process.exit(1);
 });

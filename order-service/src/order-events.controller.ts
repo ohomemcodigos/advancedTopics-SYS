@@ -4,15 +4,15 @@ import { OrderGateway } from './gateways/order.gateway';
 
 @Controller()
 export class OrderEventsController {
-  constructor(private readonly orderGateway: OrderGateway) { }
+  constructor(private readonly orderGateway: OrderGateway) {}
 
   @EventPattern('payment_processed')
-  async handlePaymentProcessed(@Payload() data: any) {
+  async handlePaymentProcessed(@Payload() data: { pedidoId: string; status: string; processadoEm: string }) {
     console.log(`[RabbitMQ] Pagamento recebido para pedido: ${data.pedidoId} — status: ${data.status}`);
 
     const novoStatus = data.status === 'APROVADO' ? 'CONFIRMADO' : 'CANCELADO';
 
-    this.orderGateway.notificarStatusAlterado(data.pedidoId, {
+    await this.orderGateway.notificarStatusAlterado(data.pedidoId, {
       pedidoId: data.pedidoId,
       novoStatus,
       alteradoEm: data.processadoEm,

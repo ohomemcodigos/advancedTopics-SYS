@@ -49,11 +49,10 @@ export class Pedido {
     }
     this.status = StatusPedido.Cancelado;
   }
-
-  get valorTotal(): number {
-    return this.itens.reduce(
-      (total, item) => total + item.precoUnitario * item.quantidade,
-      0,
-    );
-  }
+  
+get valorTotal(): number {
+  return this.itens.reduce(
+    (total: number, item: ItemPedido) => total + item.precoUnitario * item.quantidade,
+    0,
+  );
 }

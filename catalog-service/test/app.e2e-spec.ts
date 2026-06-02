@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect, afterAll } from '@jest/globals';
+import { describe, beforeEach, it, afterAll } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -13,7 +13,6 @@ describe('AppController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-    // 👇 BLINDA O TESTE: Substitui o cache real por uma versão falsa (Mock) para não travar a conexão
     .overrideProvider(JogoCacheService)
     .useValue({
       get: async () => null,
@@ -27,7 +26,7 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/ (GET)', async () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)

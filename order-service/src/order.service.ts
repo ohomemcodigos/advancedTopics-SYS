@@ -19,18 +19,15 @@ const PRECO_POR_JOGO = 49.90;
 @Injectable()
 export class OrderService {
   private orders: any[] = [];
-
   private readonly logger = new Logger(OrderService.name);
 
   constructor(
     @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
-    
-    private readonly logger = new Logger(OrderService.name);
     private readonly orderGateway: OrderGateway,
     private readonly eventBus: EventBus,
     @InjectMetric('orders_created_total') private readonly ordersCreatedCounter: Counter<string>,
     @InjectMetric('orders_cancelled_total') private readonly ordersCancelledCounter: Counter<string>,
-  ) { }
+  ) {}
 
   create(dto: CreateOrderDto) {
     this.logger.log({ msg: 'Iniciando criação de pedido', action: 'create', userId: dto.userId });
@@ -41,7 +38,6 @@ export class OrderService {
       preco: PRECO_POR_JOGO,
     }));
 
-    // Calcula o total real com base na quantidade de itens
     const valorTotal = +(itens.length * PRECO_POR_JOGO).toFixed(2);
 
     const novaOrdem = {
@@ -57,19 +53,18 @@ export class OrderService {
     this.orders.push(novaOrdem);
     this.ordersCreatedCounter.inc({ status: 'Criado' });
 
-    // Publica o evento de domínio para que o OrderProjector atualize o read model
     this.eventBus.publish(new OrderCreatedEvent(novaOrdem.id, novaOrdem.userId, dto.jogosIds));
 
     this.logger.log({ msg: 'Pedido criado com sucesso', action: 'create', orderId: novaOrdem.id, status: novaOrdem.status });
     return novaOrdem;
   }
 
-  findAll() {
+  findAll(): any[] {
     this.logger.log({ msg: 'Buscando todos os pedidos', action: 'findAll' });
     return this.orders;
   }
 
-  findOne(id: string) {
+  findOne(id: string): any {
     this.logger.log({ msg: 'Buscando pedido por ID', action: 'findOne', orderId: id });
     const order = this.orders.find(o => o.id === id);
     if (!order) {
@@ -79,7 +74,7 @@ export class OrderService {
     return order;
   }
 
-  async confirmOrder(id: string) {
+  async confirmOrder(id: string): Promise<any> {
     this.logger.log({ msg: 'Iniciando confirmação de pedido', action: 'confirmOrder', orderId: id });
     const order = this.findOne(id);
 
@@ -90,7 +85,6 @@ export class OrderService {
 
     order.status = OrderStatus.CONFIRMED;
 
-    // Publica no RabbitMQ para o payment-service processar com o valor real
     this.rabbitClient.emit('order_created', {
       pedidoId: order.id,
       valor: order.valorTotal,
@@ -99,7 +93,6 @@ export class OrderService {
 
     this.logger.log({ msg: 'Pedido confirmado com sucesso', action: 'confirmOrder', orderId: order.id });
 
-    // Notifica o frontend via WebSocket
     this.orderGateway.notificarStatusAlterado(order.id, {
       pedidoId: order.id,
       statusAnterior: 'PENDING',
@@ -108,8 +101,6 @@ export class OrderService {
       alteradoEm: new Date(),
     });
     
-    this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
-
     this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
 
     return {
@@ -122,7 +113,7 @@ export class OrderService {
     };
   }
 
-  cancelOrder(id: string) {
+  cancelOrder(id: string): any {
     this.logger.log({ msg: 'Iniciando cancelamento de pedido', action: 'cancelOrder', orderId: id });
     const order = this.findOne(id);
 
@@ -138,7 +129,7 @@ export class OrderService {
     return { message: 'Pedido cancelado.', order };
   }
 
-  findByUser(userId: string) {
+  findByUser(userId: string): any[] {
     this.logger.log({ msg: 'Buscando pedidos por usuário', action: 'findByUser', userId });
     return this.orders.filter(o => o.userId === userId);
   }

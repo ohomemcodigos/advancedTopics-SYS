@@ -19,13 +19,10 @@ const PRECO_POR_JOGO = 49.90;
 @Injectable()
 export class OrderService {
   private orders: any[] = [];
-
   private readonly logger = new Logger(OrderService.name);
 
   constructor(
     @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
-    
-    private readonly logger = new Logger(OrderService.name);
     private readonly orderGateway: OrderGateway,
     private readonly eventBus: EventBus,
     @InjectMetric('orders_created_total') private readonly ordersCreatedCounter: Counter<string>,
@@ -41,7 +38,6 @@ export class OrderService {
       preco: PRECO_POR_JOGO,
     }));
 
-    // Calcula o total real com base na quantidade de itens
     const valorTotal = +(itens.length * PRECO_POR_JOGO).toFixed(2);
 
     const novaOrdem = {
@@ -57,7 +53,6 @@ export class OrderService {
     this.orders.push(novaOrdem);
     this.ordersCreatedCounter.inc({ status: 'Criado' });
 
-    // Publica o evento de domínio para que o OrderProjector atualize o read model
     this.eventBus.publish(new OrderCreatedEvent(novaOrdem.id, novaOrdem.userId, dto.jogosIds));
 
     this.logger.log({ msg: 'Pedido criado com sucesso', action: 'create', orderId: novaOrdem.id, status: novaOrdem.status });
@@ -90,16 +85,12 @@ export class OrderService {
 
     order.status = OrderStatus.CONFIRMED;
 
-    // Publica no RabbitMQ para o payment-service processar com o valor real
     this.rabbitClient.emit('order_created', {
       pedidoId: order.id,
       valor: order.valorTotal,
       processadoEm: new Date(),
     });
 
-    this.logger.log({ msg: 'Pedido confirmado com sucesso', action: 'confirmOrder', orderId: order.id });
-
-    // Notifica o frontend via WebSocket
     this.orderGateway.notificarStatusAlterado(order.id, {
       pedidoId: order.id,
       statusAnterior: 'PENDING',
@@ -107,10 +98,8 @@ export class OrderService {
       observacao: 'Pagamento confirmado com sucesso!',
       alteradoEm: new Date(),
     });
-    
-    this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
 
-    this.logger.log({ msg: 'Notificação WebSocket enviada para o frontend', action: 'confirmOrder', orderId: id });
+    this.logger.log({ msg: 'Pedido confirmado e notificação WebSocket enviada', action: 'confirmOrder', orderId: id });
 
     return {
       message: 'Pagamento confirmado e pedido finalizado!',

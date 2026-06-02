@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health/health.controller';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { VersionController } from './version/version.controller';
 
 @Module({
   imports: [
@@ -33,7 +34,6 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       username: 'sa',
       password: process.env.DB_PASSWORD || 'MasterKey@123!',
       database: 'catalog_db',
-      
       autoLoadEntities: true,
       synchronize: false,
       options: {
@@ -43,7 +43,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       connectionTimeout: 30000,
     }),
   ],
-  controllers: [AppController, JogoController, HealthController],
+  controllers: [AppController, JogoController, HealthController, VersionController],
   providers: [
     AppService,
     JogoService,

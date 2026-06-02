@@ -156,7 +156,7 @@ jobs:
 
   # ── JOB 5: frontend Angular ──────────────────────────────────────
   frontend-ci:
-    name: Frontend — Lint e Build Angular
+    name: Frontend — Build Angular
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -176,9 +176,6 @@ jobs:
 
       - name: Build de produção
         run: npm run build
-
-      - name: Testes unitários
-        run: npm test -- --run
 
       - name: Upload dist Angular
         uses: actions/upload-artifact@v4

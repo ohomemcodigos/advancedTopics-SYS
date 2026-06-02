@@ -20,10 +20,10 @@ export class OrderProjector implements IEventHandler<OrderCreatedEvent> {
 
     try {
       const sqlVerificacao = `SELECT 1 FROM ProcessedEvents WHERE event_id = @0`;
-      const processado: ProcessedEventRow[] = await queryRunner.query(
+      const processado: ProcessedEventRow[] = (await queryRunner.query(
         sqlVerificacao,
         [messageId],
-      );
+      )) as ProcessedEventRow[];
 
       if (processado && processado.length > 0) {
         await queryRunner.rollbackTransaction();

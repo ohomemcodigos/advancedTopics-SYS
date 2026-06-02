@@ -6,6 +6,11 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { JogoCacheService } from './../src/domain/jogo/services/jogo-cache.service';
 
+interface JogoResponse {
+  jogoId: string;
+  titulo: string;
+}
+
 describe('JogosController (e2e)', () => {
   let app: INestApplication<App>;
 
@@ -13,14 +18,14 @@ describe('JogosController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-    .overrideProvider(JogoCacheService)
-    .useValue({
-      get: () => Promise.resolve(null),
-      set: async () => {},
-      invalidate: async () => {},
-      registrarMetricaTempo: () => {},
-    })
-    .compile();
+      .overrideProvider(JogoCacheService)
+      .useValue({
+        get: () => Promise.resolve(null),
+        set: async () => {},
+        invalidate: async () => {},
+        registrarMetricaTempo: () => {},
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -44,8 +49,9 @@ describe('JogosController (e2e)', () => {
       })
       .expect(201);
 
-    expect(response.body?.jogoId).toBeDefined();
-    expect(response.body?.titulo).toBe('God of War');
+    const body = response.body as JogoResponse;
+    expect(body.jogoId).toBeDefined();
+    expect(body.titulo).toBe('God of War');
   });
 
   afterAll(async () => {

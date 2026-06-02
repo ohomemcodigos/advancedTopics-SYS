@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -9,13 +18,15 @@ import { JwtService } from '@nestjs/jwt';
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   @Get('auth/mock-token')
   @ApiOperation({ summary: 'Gera um token JWT para testes do WebSocket' })
   getMockToken() {
-    const token = this.jwtService.sign({ userId: '123e4567-e89b-12d3-a456-426614174000' });
+    const token = this.jwtService.sign({
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+    });
     return { token };
   }
 

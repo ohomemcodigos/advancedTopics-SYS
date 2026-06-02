@@ -17,9 +17,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           correlationId: req.headers['x-correlation-id'],
           environment: process.env.NODE_ENV,
         }),
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
       },
     }),
     TerminusModule,

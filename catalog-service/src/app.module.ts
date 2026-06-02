@@ -20,9 +20,10 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
           correlationId: req.headers['x-correlation-id'],
           environment: process.env.NODE_ENV,
         }),
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
       },
     }),
     TerminusModule,
@@ -33,7 +34,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       username: 'sa',
       password: process.env.DB_PASSWORD || 'MasterKey@123!',
       database: 'catalog_db',
-      
+
       autoLoadEntities: true,
       synchronize: false,
       options: {
@@ -44,10 +45,6 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     }),
   ],
   controllers: [AppController, JogoController, HealthController],
-  providers: [
-    AppService,
-    JogoService,
-    JogoCacheService,
-  ],
+  providers: [AppService, JogoService, JogoCacheService],
 })
 export class AppModule {}

@@ -4,7 +4,6 @@ import { ListOrdersByUserQuery } from '../queries/list-orders-by-user.query';
 
 @QueryHandler(ListOrdersByUserQuery)
 export class ListOrdersByUserHandler implements IQueryHandler<ListOrdersByUserQuery> {
-  
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(query: ListOrdersByUserQuery): Promise<any[]> {

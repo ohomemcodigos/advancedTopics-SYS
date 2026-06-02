@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
-import { 
-  HealthCheck, 
-  HealthCheckService, 
-  MicroserviceHealthIndicator 
+import {
+  HealthCheck,
+  HealthCheckService,
+  MicroserviceHealthIndicator,
 } from '@nestjs/terminus';
 import { Transport, RedisOptions, RmqOptions } from '@nestjs/microservices';
 
@@ -23,20 +23,22 @@ export class HealthController {
   @HealthCheck()
   checkReadiness() {
     return this.health.check([
-      () => this.microservice.pingCheck<RmqOptions>('rabbitmq', {
-        transport: Transport.RMQ,
-        options: {
-          urls: ['amqp://rabbitmq:5672'], 
-        },
-      }),
-      () => this.microservice.pingCheck<RedisOptions>('redis', {
-        transport: Transport.REDIS,
-        options: {
-          host: 'localhost',
-          port: 6379,
-          password: 'redissenha123',
-        },
-      }),
+      () =>
+        this.microservice.pingCheck<RmqOptions>('rabbitmq', {
+          transport: Transport.RMQ,
+          options: {
+            urls: ['amqp://rabbitmq:5672'],
+          },
+        }),
+      () =>
+        this.microservice.pingCheck<RedisOptions>('redis', {
+          transport: Transport.REDIS,
+          options: {
+            host: 'localhost',
+            port: 6379,
+            password: 'redissenha123',
+          },
+        }),
     ]);
   }
 }

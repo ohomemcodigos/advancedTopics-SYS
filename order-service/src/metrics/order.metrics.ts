@@ -1,4 +1,7 @@
-import { makeCounterProvider, makeHistogramProvider } from '@willsoto/nestjs-prometheus';
+import {
+  makeCounterProvider,
+  makeHistogramProvider,
+} from '@willsoto/nestjs-prometheus';
 
 // Contador: Total de pedidos criados
 export const ordersCreatedCounter = makeCounterProvider({

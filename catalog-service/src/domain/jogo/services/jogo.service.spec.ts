@@ -54,9 +54,9 @@ describe('JogoService (Unitário)', () => {
   it('deve cadastrar e encontrar um jogo', async () => {
     const criado = await service.create(mockCreateJogoDto);
     const encontrado = await service.findOne(criado.jogoId);
-    
+
     expect(encontrado).toBeDefined();
-    expect(encontrado!.titulo).toBe(mockCreateJogoDto.titulo);
+    expect(encontrado.titulo).toBe(mockCreateJogoDto.titulo);
   });
 
   it('deve lançar NotFoundException ao buscar ID inexistente', async () => {
@@ -65,7 +65,10 @@ describe('JogoService (Unitário)', () => {
 
   it('deve atualizar um jogo com sucesso', async () => {
     const criado = await service.create(mockCreateJogoDto);
-    const updateDto: CreateJogoDto = { ...mockCreateJogoDto, titulo: 'Silksong' };
+    const updateDto: CreateJogoDto = {
+      ...mockCreateJogoDto,
+      titulo: 'Silksong',
+    };
 
     const atualizado = await service.update(criado.jogoId, updateDto);
 
@@ -77,11 +80,12 @@ describe('JogoService (Unitário)', () => {
 
     await service.delete(criado.jogoId);
 
-    await expect(service.findOne(criado.jogoId)).rejects.toThrow(NotFoundException);
+    await expect(service.findOne(criado.jogoId)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('deve lançar NotFoundException ao deletar inexistente', async () => {
     await expect(service.delete('fake-id')).rejects.toThrow(NotFoundException);
   });
-
 });

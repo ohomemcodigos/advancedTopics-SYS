@@ -18,7 +18,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      transform: true,     
+      transform: true,
     }),
   );
 
@@ -33,7 +33,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
-  app.get(Logger).log(`User Service está rodando em: http://localhost:3002/api`);
+  app
+    .get(Logger)
+    .log(`User Service está rodando em: http://localhost:3002/api`);
 }
 
 bootstrap().catch((err) => {

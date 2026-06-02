@@ -13,9 +13,8 @@ export class OrderEventsController {
   constructor(private readonly orderGateway: OrderGateway) {}
 
   @EventPattern('payment_processed')
-  async handlePaymentProcessed(
-    @Payload() data: PaymentProcessedData,
-  ): Promise<void> {
+  // Removido 'async' e 'Promise'
+  handlePaymentProcessed(@Payload() data: PaymentProcessedData): void {
     console.log(
       `[RabbitMQ] Pagamento recebido para pedido: ${data.pedidoId} — status: ${data.status}`,
     );
@@ -23,7 +22,7 @@ export class OrderEventsController {
     const novoStatus: string =
       data.status === 'APROVADO' ? 'CONFIRMADO' : 'CANCELADO';
 
-    await this.orderGateway.notificarStatusAlterado(data.pedidoId, {
+    this.orderGateway.notificarStatusAlterado(data.pedidoId, {
       pedidoId: data.pedidoId,
       novoStatus,
       alteradoEm: new Date(data.processadoEm),

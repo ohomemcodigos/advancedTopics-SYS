@@ -14,11 +14,13 @@ async function bootstrap() {
   // TimeoutInterceptor não tem dependências injetadas — pode usar new
   app.useGlobalInterceptors(new TimeoutInterceptor());
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Pedidos')

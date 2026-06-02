@@ -11,23 +11,19 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 
-interface JwtPayload {
+export interface JwtPayload {
   userId?: string;
   sub?: string;
   iat?: number;
   exp?: number;
 }
 
-interface StatusUpdateData {
+export interface StatusUpdateData {
   pedidoId: string;
   statusAnterior?: string;
   novoStatus: string;
   observacao?: string;
   alteradoEm: Date;
-}
-
-interface ClientData {
-  user: JwtPayload;
 }
 
 @WebSocketGateway({
@@ -47,18 +43,22 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket): Promise<void> {
     try {
       const token: string | undefined =
-        client.handshake.auth?.token ||
+        (client.handshake.auth?.token as string) ||
         client.handshake.headers?.authorization?.split(' ')[1];
 
       if (!token) {
         throw new UnauthorizedException('Token não fornecido');
       }
 
-      const payload: JwtPayload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || 'senha_doida_uaulegauuuu_567364537@#@',
-      });
+      const payload: JwtPayload = await this.jwtService.verifyAsync<JwtPayload>(
+        token,
+        {
+          secret:
+            process.env.JWT_SECRET || 'senha_doida_uaulegauuuu_567364537@#@',
+        },
+      );
 
-      client.data = { user: payload } as ClientData;
+      client.data = { user: payload };
 
       console.log(
         `[WebSocket] Cliente autenticado conectado: ${client.id} (User ID: ${payload.userId || payload.sub || 'Desconhecido'})`,
@@ -84,7 +84,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() pedidoId: string,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    const grupo: string = `pedido_${pedidoId}`;
+    const grupo = `pedido_${pedidoId}`;
     await client.join(grupo);
     console.log(`[WebSocket] Cliente ${client.id} entrou no grupo: ${grupo}`);
     client.emit('AssinaturaConfirmada', { pedidoId, status: 'Conectado' });
@@ -94,7 +94,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     pedidoId: string,
     statusAtualizado: StatusUpdateData,
   ): void {
-    const grupo: string = `pedido_${pedidoId}`;
+    const grupo = `pedido_${pedidoId}`;
     this.server.to(grupo).emit('StatusAtualizado', statusAtualizado);
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { JogoService } from '../services/jogo.service';
 import { CreateJogoDto } from '../dto/create-jogo.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -24,7 +32,11 @@ export class JogoController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Buscar um jogo por ID' })
-  @ApiParam({ name: 'id', description: 'O ID do jogo que você deseja buscar', example: '1' })
+  @ApiParam({
+    name: 'id',
+    description: 'O ID do jogo que você deseja buscar',
+    example: '1',
+  })
   @ApiResponse({ status: 200, description: 'Jogo encontrado.' })
   @ApiResponse({ status: 404, description: 'Jogo não encontrado.' })
   findOne(@Param('id') id: string) {
@@ -33,7 +45,11 @@ export class JogoController {
 
   @Post()
   @ApiOperation({ summary: 'Cadastrar um novo jogo' })
-  @ApiResponse({ status: 201, description: 'Jogo cadastrado com sucesso.', type: CreateJogoDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Jogo cadastrado com sucesso.',
+    type: CreateJogoDto,
+  })
   create(@Body() dto: CreateJogoDto) {
     return this.jogoService.create(dto);
   }

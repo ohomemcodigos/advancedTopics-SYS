@@ -6,7 +6,9 @@ export class ChaveAtivacao {
     // Formato esperado: XXXX-XXXX-XXXX (3 grupos de 4 chars separados por hífen)
     const formatoValido = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(codigo);
     if (!formatoValido) {
-      throw new Error('Código de ativação deve seguir o formato XXXX-XXXX-XXXX.');
+      throw new Error(
+        'Código de ativação deve seguir o formato XXXX-XXXX-XXXX.',
+      );
     }
   }
 

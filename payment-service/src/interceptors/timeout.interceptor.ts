@@ -11,15 +11,18 @@ import { catchError, timeout } from 'rxjs/operators';
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-  return next.handle().pipe(
-    timeout(5000),
-    catchError((err: unknown) => {
-      if (err instanceof TimeoutError) {
-        return throwError(
-          () => new RequestTimeoutException('Tempo de requisição esgotado. Tente novamente mais tarde.')
-        );
-      }
-      return throwError(() => err);
+    return next.handle().pipe(
+      timeout(5000),
+      catchError((err: unknown) => {
+        if (err instanceof TimeoutError) {
+          return throwError(
+            () =>
+              new RequestTimeoutException(
+                'Tempo de requisição esgotado. Tente novamente mais tarde.',
+              ),
+          );
+        }
+        return throwError(() => err);
       }),
     );
   }

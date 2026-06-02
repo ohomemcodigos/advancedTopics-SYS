@@ -13,14 +13,14 @@ describe('AppController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-    .overrideProvider(JogoCacheService)
-    .useValue({
-      get: () => Promise.resolve(null),
-      set: async () => {},
-      invalidate: async () => {},
-      registrarMetricaTempo: () => {},
-    })
-    .compile();
+      .overrideProvider(JogoCacheService)
+      .useValue({
+        get: () => Promise.resolve(null),
+        set: async () => {},
+        invalidate: async () => {},
+        registrarMetricaTempo: () => {},
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

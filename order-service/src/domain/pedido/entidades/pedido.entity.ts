@@ -22,8 +22,12 @@ export class Pedido {
     itens: ItemPedido[],
     dataPedido?: Date,
   ) {
-    if (!id) throw new Error('ID do pedido é obrigatório.');
-    if (!usuarioId) throw new Error('ID do usuário é obrigatório.');
+    if (!id) {
+      throw new Error('ID do pedido é obrigatório.');
+    }
+    if (!usuarioId) {
+      throw new Error('ID do usuário é obrigatório.');
+    }
 
     this.id = id;
     this.usuarioId = usuarioId;
@@ -32,7 +36,7 @@ export class Pedido {
     this.status = StatusPedido.Pendente;
   }
 
-  marcarComoPago(): void {
+  public marcarComoPago(): void {
     if (this.status !== StatusPedido.Pendente) {
       throw new Error(
         `Não é possível pagar um pedido com status "${this.status}".`,
@@ -41,17 +45,18 @@ export class Pedido {
     this.status = StatusPedido.Pago;
   }
 
-  cancelar(): void {
+  public cancelar(): void {
     if (this.status === StatusPedido.Entregue) {
       throw new Error('Não é possível cancelar um pedido já entregue.');
     }
     this.status = StatusPedido.Cancelado;
   }
 
-  get valorTotal(): number {
-    return this.itens.reduce(
-      (total: number, item: ItemPedido) =>
-        total + item.precoUnitario * item.quantidade,
+  public get valorTotal(): number {
+    return this.itens.reduce<number>(
+      (total: number, item: ItemPedido): number => {
+        return total + Number(item.precoUnitario) * Number(item.quantidade);
+      },
       0,
     );
   }

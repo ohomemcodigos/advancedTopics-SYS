@@ -4,7 +4,7 @@ import { createClient, RedisClientType } from 'redis';
 @Injectable()
 export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   private client!: RedisClientType;
-  private readonly PREFIX = 'GestaoPedidos:'; 
+  private readonly PREFIX = 'GestaoPedidos:';
 
   // Contadores locais em memória para estimativa de Hit Rate e tempos
   private totalHits = 0;
@@ -38,7 +38,9 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.totalHits++; // Incrementa contador local de HIT
-    console.log(`[Cache HIT] Chave recuperada com sucesso do Redis: ${fullKey}`);
+    console.log(
+      `[Cache HIT] Chave recuperada com sucesso do Redis: ${fullKey}`,
+    );
     return JSON.parse(data) as T;
   }
 
@@ -46,9 +48,11 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
     const fullKey = `${this.PREFIX}${key}`;
     const serializedData = JSON.stringify(value);
     await this.client.set(fullKey, serializedData, {
-      EX: ttlSeconds
+      EX: ttlSeconds,
     });
-    console.log(`[Cache SET] Dado armazenado. Chave: ${fullKey} | TTL: ${ttlSeconds}s`);
+    console.log(
+      `[Cache SET] Dado armazenado. Chave: ${fullKey} | TTL: ${ttlSeconds}s`,
+    );
   }
 
   async invalidate(key: string): Promise<void> {
@@ -76,12 +80,19 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   async obterEstatisticas() {
     // Busca a quantidade real de chaves dinâmicas ativas no Redis através do prefixo Namespace
     const chaves = await this.client.keys(`${this.PREFIX}*`);
-    
+
     const totalRequisicoes = this.totalHits + this.totalMisses;
-    const hitRate = totalRequisicoes > 0 ? (this.totalHits / totalRequisicoes) * 100 : 0;
-    
-    const mediaComCache = this.countWithCache > 0 ? (this.totalTimeWithCache / this.countWithCache) : 0;
-    const mediaSemCache = this.countWithoutCache > 0 ? (this.totalTimeWithoutCache / this.countWithoutCache) : 0;
+    const hitRate =
+      totalRequisicoes > 0 ? (this.totalHits / totalRequisicoes) * 100 : 0;
+
+    const mediaComCache =
+      this.countWithCache > 0
+        ? this.totalTimeWithCache / this.countWithCache
+        : 0;
+    const mediaSemCache =
+      this.countWithoutCache > 0
+        ? this.totalTimeWithoutCache / this.countWithoutCache
+        : 0;
 
     return {
       totalChavesAtivas: chaves.length,
@@ -89,12 +100,12 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
       detalhes: {
         cacheHits: this.totalHits,
         cacheMisses: this.totalMisses,
-        totalRequisicoes
+        totalRequisicoes,
       },
       tempoMedioResposta: {
         comCache: `${mediaComCache.toFixed(4)}ms`,
-        semCache: `${mediaSemCache.toFixed(4)}ms`
-      }
+        semCache: `${mediaSemCache.toFixed(4)}ms`,
+      },
     };
   }
 }

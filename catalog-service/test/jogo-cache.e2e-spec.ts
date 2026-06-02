@@ -12,9 +12,9 @@ describe('JogoCacheService com Testcontainers (Integração)', () => {
 
   beforeAll(async () => {
     console.log('Subindo container isolado do Redis via Testcontainers...');
-    
+
     redisContainer = await new RedisContainer('redis:7-alpine').start();
-    
+
     const host = redisContainer.getHost();
     const port = redisContainer.getMappedPort(6379);
     const connectionString = `redis://${host}:${port}`;
@@ -27,9 +27,10 @@ describe('JogoCacheService com Testcontainers (Integração)', () => {
 
     redisClient = createClient({ url: connectionString }) as RedisClientType;
     await redisClient.connect();
-    
-    (cacheService as JogoCacheService & { client: RedisClientType }).client = redisClient;
-    
+
+    (cacheService as JogoCacheService & { client: RedisClientType }).client =
+      redisClient;
+
     console.log(`✅ Testcontainers pronto e conectado em: ${connectionString}`);
   }, 45000);
 
@@ -46,7 +47,7 @@ describe('JogoCacheService com Testcontainers (Integração)', () => {
 
   it('CacheAside_DeveFazerHitNaSegundaLeitura', async () => {
     const jogoId = 'bbb11111-1111-1111-1111-111111111111';
-    const mockJogo = { jogoId, titulo: 'Elden Ring Teste', preco: 249.90 };
+    const mockJogo = { jogoId, titulo: 'Elden Ring Teste', preco: 249.9 };
     const chaveCache = `produto:item:${jogoId}`;
 
     const primeiraLeitura = await cacheService.get(chaveCache);
@@ -55,10 +56,10 @@ describe('JogoCacheService com Testcontainers (Integração)', () => {
     await cacheService.set(chaveCache, mockJogo, 60);
 
     const segundaLeitura = await cacheService.get<typeof mockJogo>(chaveCache);
-    
+
     expect(segundaLeitura).not.toBeNull();
     expect(segundaLeitura?.titulo).toBe('Elden Ring Teste');
-    expect(segundaLeitura?.preco).toBe(249.90);
+    expect(segundaLeitura?.preco).toBe(249.9);
   });
 
   it('InvalidateAsync_DeveRemoverChaveDoRedis', async () => {

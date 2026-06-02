@@ -8,7 +8,9 @@ export const retryWithBackoff = (
     count: maxRetries,
     delay: (error, retryCount) => {
       const delay = Math.pow(2, retryCount - 1) * initialDelay;
-      console.log(`Tentativa ${retryCount} falhou. Tentando novamente em ${delay}ms...`);
+      console.log(
+        `Tentativa ${retryCount} falhou. Tentando novamente em ${delay}ms...`,
+      );
       return timer(delay);
     },
   });

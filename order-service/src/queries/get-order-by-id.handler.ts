@@ -4,7 +4,6 @@ import { GetOrderByIdQuery } from '../queries/get-order-by-id.query';
 
 @QueryHandler(GetOrderByIdQuery)
 export class GetOrderByIdHandler implements IQueryHandler<GetOrderByIdQuery> {
-  
   // 1. Injeção do DataSource no construtor
   constructor(private readonly dataSource: DataSource) {}
 

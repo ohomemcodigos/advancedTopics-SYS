@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Preco {
-
   @ApiProperty({
-    example: 59.90,
+    example: 59.9,
     description: 'Valor do jogo',
   })
   public readonly valor: number;
@@ -14,11 +13,7 @@ export class Preco {
   })
   public readonly moeda: string;
 
-  constructor(
-    valor: number,
-    moeda: string,
-  ) {
-
+  constructor(valor: number, moeda: string) {
     if (valor < 0) throw new Error('O valor do preço não pode ser negativo.');
     if (!moeda) throw new Error('A moeda do preço é obrigatória.');
 

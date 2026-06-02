@@ -16,8 +16,8 @@ export class PaymentProxyService {
 
     return await lastValueFrom(
       this.httpService.post(url, payload).pipe(
-        retryWithBackoff(3, 1000) // Aplica o retry com backoff exponencial
-      )
+        retryWithBackoff(3, 1000), // Aplica o retry com backoff exponencial
+      ),
     );
   }
 }

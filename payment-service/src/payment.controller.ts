@@ -21,8 +21,10 @@ export class PaymentController {
     return this.paymentService.getPaymentByOrder(orderId);
   }
 
-  @EventPattern('order_created') 
-  async handleOrderCreated(@Payload() data: { pedidoId: string; valor: number }): Promise<void> {
+  @EventPattern('order_created')
+  async handleOrderCreated(
+    @Payload() data: { pedidoId: string; valor: number },
+  ): Promise<void> {
     console.log('📦 Evento recebido via RabbitMQ no Payment Service:', data);
     return await this.commandBus.execute(
       new ProcessPaymentCommand(data.pedidoId, data.valor),

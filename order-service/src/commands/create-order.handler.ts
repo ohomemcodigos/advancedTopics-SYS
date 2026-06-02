@@ -21,7 +21,7 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
     private readonly histogram: Histogram<string>,
   ) {}
 
-  async execute(command: CreateOrderCommand): Promise<CreatedOrder> {
+  execute(command: CreateOrderCommand): CreatedOrder {
     const end = this.histogram.startTimer({});
 
     try {

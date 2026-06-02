@@ -5,54 +5,54 @@ import { RequisitosTecnicos } from '../objetos_de_valor/requisitos-tecnicos.vo';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Jogo {
-
   @ApiProperty({
-    example: "JOGO-01",
-    description: "Identificador único do jogo"
+    example: 'JOGO-01',
+    description: 'Identificador único do jogo',
   })
   public readonly jogoId: string;
 
   @ApiProperty({
-    example: "Hollow Knight",
-    description: "Título do jogo"
+    example: 'Hollow Knight',
+    description: 'Título do jogo',
   })
   public titulo: string;
 
   @ApiProperty({
-    example: "Hollow Knight é um jogo de ação e aventura em 2D desenvolvido pela Team Cherry. Explore um vasto mundo subterrâneo cheio de criaturas, segredos e desafios enquanto desvenda a história de um reino esquecido.",
-    description: "Descrição do jogo"
+    example:
+      'Hollow Knight é um jogo de ação e aventura em 2D desenvolvido pela Team Cherry. Explore um vasto mundo subterrâneo cheio de criaturas, segredos e desafios enquanto desvenda a história de um reino esquecido.',
+    description: 'Descrição do jogo',
   })
   public descricao: string;
 
   @ApiProperty({
-    example: "Team Cherry",
-    description: "Estúdio desenvolvedor do jogo"
+    example: 'Team Cherry',
+    description: 'Estúdio desenvolvedor do jogo',
   })
   public desenvolvedora: string;
 
   @ApiProperty({
     example: 12000,
-    description: "Número de análises feitas pelos usuários"
+    description: 'Número de análises feitas pelos usuários',
   })
   public numeroAnalises: number;
 
   @ApiProperty({
-    description: "Objeto de valor que representa o preço do jogo"
+    description: 'Objeto de valor que representa o preço do jogo',
   })
   public preco: Preco;
 
   @ApiProperty({
-    description: "Categoria do jogo"
+    description: 'Categoria do jogo',
   })
   public categoria: Categoria;
 
   @ApiProperty({
-    description: "Classificação indicativa"
+    description: 'Classificação indicativa',
   })
   public classificacaoIndicativa: ClassificacaoIndicativa;
 
   @ApiProperty({
-    description: "Requisitos técnicos para rodar o jogo"
+    description: 'Requisitos técnicos para rodar o jogo',
   })
   public requisitosTecnicos: RequisitosTecnicos;
 

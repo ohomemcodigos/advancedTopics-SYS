@@ -13,7 +13,11 @@ import { GetOrderByIdHandler } from './queries/get-order-by-id.handler';
 import { OrderProjector } from './projections/order.projector';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './health/health.module';
-import { PrometheusModule, makeCounterProvider, makeHistogramProvider } from '@willsoto/nestjs-prometheus';
+import {
+  PrometheusModule,
+  makeCounterProvider,
+  makeHistogramProvider,
+} from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
@@ -25,9 +29,10 @@ import { PrometheusModule, makeCounterProvider, makeHistogramProvider } from '@w
           correlationId: req.headers['x-correlation-id'],
           environment: process.env.NODE_ENV,
         }),
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
       },
     }),
     CqrsModule,
@@ -87,4 +92,4 @@ import { PrometheusModule, makeCounterProvider, makeHistogramProvider } from '@w
     }),
   ],
 })
-export class AppModule { }
+export class AppModule {}

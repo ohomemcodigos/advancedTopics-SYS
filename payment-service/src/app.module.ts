@@ -9,7 +9,10 @@ import { LoggerModule } from 'nestjs-pino';
 // 1. Importações do Health Check
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health/health.controller';
-import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-prometheus';
+import {
+  PrometheusModule,
+  makeCounterProvider,
+} from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
@@ -21,9 +24,10 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
           correlationId: req.headers['x-correlation-id'],
           environment: process.env.NODE_ENV,
         }),
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
       },
     }),
     CqrsModule,
@@ -54,4 +58,4 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
     }),
   ],
 })
-export class AppModule { }
+export class AppModule {}

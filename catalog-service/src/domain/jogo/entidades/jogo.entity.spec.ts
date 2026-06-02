@@ -8,7 +8,7 @@ import { Categoria } from '../objetos_de_valor/categoria.vo';
 describe('Jogo (Entidade)', () => {
   it('deve criar um jogo com ID e preco corretamente', () => {
     // Arrange
-    const preco = new Preco(199.90, 'BRL');
+    const preco = new Preco(199.9, 'BRL');
     const categoria = new Categoria('RPG', 'Role-playing game');
     const classificacao = new ClassificacaoIndicativa('16+'); // Corrigido para '16+'
     const requisitos = new RequisitosTecnicos('Windows 10', 'GTX 1060', '8GB');
@@ -23,12 +23,12 @@ describe('Jogo (Entidade)', () => {
       preco,
       categoria,
       classificacao,
-      requisitos
+      requisitos,
     );
 
     // Assert
     expect(jogo.jogoId).toBe('SKU-123');
-    expect(jogo.preco.valor).toBe(199.90);
+    expect(jogo.preco.valor).toBe(199.9);
   });
 
   it('deve armazenar os requisitos tecnicos corretamente', () => {
@@ -37,7 +37,7 @@ describe('Jogo (Entidade)', () => {
 
     // Assert
     expect(requisitos.sistemaOperacional).toBe('Linux');
-    expect(requisitos.gpu).toBe('RTX 3060'); 
+    expect(requisitos.gpu).toBe('RTX 3060');
     expect(requisitos.ram).toBe('16GB');
   });
 });

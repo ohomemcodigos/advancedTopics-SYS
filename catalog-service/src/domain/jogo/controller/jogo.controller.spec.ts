@@ -1,13 +1,24 @@
-import { describe, beforeEach, it, expect, afterAll, jest } from '@jest/globals';
+import {
+  describe,
+  beforeEach,
+  it,
+  expect,
+  afterAll,
+  jest,
+} from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JogoController } from './jogo.controller';
 import { JogoService } from '../services/jogo.service';
-import { INestApplication, ValidationPipe, NotFoundException } from '@nestjs/common';
+import {
+  INestApplication,
+  ValidationPipe,
+  NotFoundException,
+} from '@nestjs/common';
 import request from 'supertest';
 
 describe('JogoController (Integração)', () => {
   let app: INestApplication;
-  
+
   const mockJogoService = {
     create: jest.fn(),
     findOne: jest.fn(),
@@ -21,18 +32,21 @@ describe('JogoController (Integração)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
   describe('Cenários de Erro e Validação', () => {
     it('deve retornar 400 se o preço for negativo (Validação DTO) [cite: 471]', async () => {
       // Act
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const response = await request(app.getHttpServer())
         .post('/jogos')
         .send({
           titulo: 'Jogo Inválido',
-          preco: { valor: -10, moeda: 'BRL' } // preço > 0
+          preco: { valor: -10, moeda: 'BRL' }, // preço > 0
         });
 
       // Assert
@@ -46,6 +60,7 @@ describe('JogoController (Integração)', () => {
       });
 
       // Act
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const response = await request(app.getHttpServer()).get('/jogos/id-fake');
 
       // Assert

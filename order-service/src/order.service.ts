@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { EventBus } from '@nestjs/cqrs';
 import { v4 as uuid } from 'uuid';
@@ -39,7 +45,7 @@ interface ConfirmOrderResponse {
   };
 }
 
-const PRECO_POR_JOGO = 49.90;
+const PRECO_POR_JOGO = 49.9;
 
 @Injectable()
 export class OrderService {
@@ -50,8 +56,10 @@ export class OrderService {
     @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
     private readonly orderGateway: OrderGateway,
     private readonly eventBus: EventBus,
-    @InjectMetric('orders_created_total') private readonly ordersCreatedCounter: Counter<string>,
-    @InjectMetric('orders_cancelled_total') private readonly ordersCancelledCounter: Counter<string>,
+    @InjectMetric('orders_created_total')
+    private readonly ordersCreatedCounter: Counter<string>,
+    @InjectMetric('orders_cancelled_total')
+    private readonly ordersCancelledCounter: Counter<string>,
   ) {}
 
   create(dto: CreateOrderDto): Order {
@@ -67,9 +75,7 @@ export class OrderService {
       preco: PRECO_POR_JOGO,
     }));
 
-    const valorTotal: number = +(
-      itens.length * PRECO_POR_JOGO
-    ).toFixed(2);
+    const valorTotal: number = +(itens.length * PRECO_POR_JOGO).toFixed(2);
 
     const novaOrdem: Order = {
       id: uuid(),
@@ -123,7 +129,7 @@ export class OrderService {
     return order;
   }
 
-  async confirmOrder(id: string): Promise<ConfirmOrderResponse> {
+  confirmOrder(id: string): ConfirmOrderResponse {
     this.logger.log({
       msg: 'Iniciando confirmação de pedido',
       action: 'confirmOrder',

@@ -16,7 +16,10 @@ export class TimeoutInterceptor implements NestInterceptor {
       catchError((err: unknown) => {
         if (err instanceof TimeoutError) {
           return throwError(
-            () => new RequestTimeoutException('Tempo de requisição esgotado. Tente novamente mais tarde.')
+            () =>
+              new RequestTimeoutException(
+                'Tempo de requisição esgotado. Tente novamente mais tarde.',
+              ),
           );
         }
         return throwError(() => err as Error);

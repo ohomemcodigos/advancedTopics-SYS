@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './user.controller';
 import { AppService } from './user.service';
@@ -15,9 +16,8 @@ describe('AppController', () => {
     const controller = app.get(AppController);
     if (!controller) {
       throw new Error('AppController not found');
-    } 
+    }
     appController = controller as AppController;
-
   });
 
   it('should be defined', () => {

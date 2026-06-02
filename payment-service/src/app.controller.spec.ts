@@ -1,6 +1,7 @@
+/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './payment.controller';
-import { AppService } from './payment.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -11,8 +12,8 @@ describe('AppController', () => {
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController) as AppController;
-});
+    appController = app.get<AppController>(AppController);
+  });
 
   it('should be defined', () => {
     expect(appController).toBeDefined();

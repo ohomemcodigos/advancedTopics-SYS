@@ -34,7 +34,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`[DEBUG Frontend Proxy] Requisição recebida: ${req.method} ${req.url}`);
+    console.log(
+      `[DEBUG Frontend Proxy] Requisição recebida: ${req.method} ${req.url}`,
+    );
     next();
   });
 

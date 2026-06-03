@@ -1,6 +1,7 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { DataSource, QueryRunner } from 'typeorm';
 import { OrderCreatedEvent } from '../events/order-created.event';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 interface ProcessedEventRow {
   '1': number;
@@ -8,7 +9,7 @@ interface ProcessedEventRow {
 
 @EventsHandler(OrderCreatedEvent)
 export class OrderProjector implements IEventHandler<OrderCreatedEvent> {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async handle(event: OrderCreatedEvent): Promise<void> {
     const { orderId, userId } = event;

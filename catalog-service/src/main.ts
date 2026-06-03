@@ -33,6 +33,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`[DEBUG Frontend Proxy] Requisição recebida: ${req.method} ${req.url}`);
+    next();
+  });
+
   await app.listen(3001);
 
   app

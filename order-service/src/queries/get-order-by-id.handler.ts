@@ -1,11 +1,12 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
 import { GetOrderByIdQuery } from '../queries/get-order-by-id.query';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @QueryHandler(GetOrderByIdQuery)
 export class GetOrderByIdHandler implements IQueryHandler<GetOrderByIdQuery> {
   // 1. Injeção do DataSource no construtor
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async execute(query: GetOrderByIdQuery): Promise<any> {
     const { id } = query;

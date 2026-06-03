@@ -1,10 +1,11 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { ListOrdersByUserQuery } from '../queries/list-orders-by-user.query';
 
 @QueryHandler(ListOrdersByUserQuery)
 export class ListOrdersByUserHandler implements IQueryHandler<ListOrdersByUserQuery> {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async execute(query: ListOrdersByUserQuery): Promise<any[]> {
     const { userId } = query;

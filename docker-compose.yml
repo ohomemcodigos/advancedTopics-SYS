@@ -160,7 +160,7 @@ services:
       - "5001:3000"
     environment:
       - NODE_ENV=production
-      - DB_PASSWORD="MasterKey@123!"
+      - DB_PASSWORD=MasterKey@123!
       - APP_VERSION=0.1.0
     depends_on:
       sqlserver:

@@ -197,32 +197,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download cobertura catalog
+      - name: Download coverage
         uses: actions/download-artifact@v4
         with:
-          name: coverage-catalog
-          path: ./coverage/catalog
+          pattern: coverage-*
+          path: ./coverage
 
-      - name: Download cobertura order
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-order
-          path: ./coverage/order
-
-      - name: Download cobertura payment
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-payment
-          path: ./coverage/payment
-
-      - name: Download cobertura user
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-user
-          path: ./coverage/user
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=chavemaximus-advancedtopics-sys
+            -Dsonar.organization=sys_maximus-org

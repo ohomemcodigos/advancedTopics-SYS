@@ -5,6 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
+  coverageReporters: ['lcov', 'text'],
   collectCoverageFrom: [
     '**/*.(t|j)s',
     '!**/*.module.ts',

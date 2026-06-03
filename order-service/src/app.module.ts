@@ -4,6 +4,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderController } from './order.controller';
+import { VersionController } from './version.controller';
 import { OrderService } from './order.service';
 import { OrderEventsController } from './order-events.controller';
 import { OrderGateway } from './gateways/order.gateway';
@@ -68,7 +69,7 @@ import {
     ]),
     HealthModule,
   ],
-  controllers: [OrderController, OrderEventsController],
+  controllers: [OrderController, OrderEventsController, VersionController],
   providers: [
     OrderService,
     OrderGateway,
@@ -76,6 +77,7 @@ import {
     ListOrdersByUserHandler,
     GetOrderByIdHandler,
     OrderProjector,
+    VersionController,
     makeCounterProvider({
       name: 'orders_created_total',
       help: 'Total de pedidos criados',

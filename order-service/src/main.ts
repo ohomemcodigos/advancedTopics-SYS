@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -48,12 +49,12 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  
-  app.use((req, res, next) => {
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`[DEBUG] Requisição recebida: ${req.method} ${req.url}`);
     next();
   });
-  
+
   await app.listen(3000);
 
   app.get(Logger).log(`Order Service rodando em: http://localhost:3000/api`);

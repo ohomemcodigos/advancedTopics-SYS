@@ -1,0 +1,51 @@
+<div class="container">
+  <h1>Simulação de Vendas (Angular)</h1>
+  
+  @if (avisoCors) {
+    <div class="aviso-cors">
+      ⚠️ Catálogo inacessível. Carregando simulação local.
+    </div>
+  }
+
+  <h2>Vitrine de Jogos</h2>
+  <div class="grid">
+    @if (jogos.length === 0) {
+      <p style="text-align: center; width: 100%;">Carregando dados...</p>
+    }
+
+    @for (jogo of jogos; track jogo.id) {
+      <div class="card">
+        <img [src]="jogo.imagemUrl" [alt]="jogo.titulo" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
+        <h3>{{ jogo.titulo }}</h3>
+        <p>BRL {{ jogo.preco.toFixed(2) }}</p>
+        <button (click)="comprarJogo(jogo.id)" [disabled]="pedidoEmAndamento">Comprar (POST)</button>
+      </div>
+    }
+  </div>
+
+  @if (mostrarPainel) {
+    <div class="painel-pedido">
+      <h2>Acompanhamento do Pedido</h2>
+      
+      @if (pedidoIdAtual) {
+        <div>
+          <div class="status-texto" [style.color]="signalrService.statusPedido() === 'CONFIRMADO' ? '#a6e3a1' : '#f38ba8'">
+            Status: {{ signalrService.statusPedido() }}
+          </div>
+          
+          <button id="btn-pagar" (click)="simularPagamento()" [disabled]="btnPagarDisabled">
+            3. Pagamento
+          </button>
+        </div>
+      }
+
+      <div class="log-box">
+        <div>Logs do Sistema:</div>
+        <div>-------------------</div>
+        @for (log of signalrService.logsDoSistema(); track $index) {
+          <div>{{ log }}</div>
+        }
+      </div>
+    </div>
+  }
+</div>

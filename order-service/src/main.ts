@@ -12,7 +12,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
-  // TimeoutInterceptor não tem dependências injetadas — pode usar new
   app.useGlobalInterceptors(new TimeoutInterceptor());
 
   app.useGlobalPipes(
@@ -42,8 +41,8 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://rabbitmq:5672'],
-      queue: 'payment_queue',
+      urls: ['amqp://localhost:5672'],
+      queue: 'order_queue',
       queueOptions: { durable: true },
     },
   });
@@ -55,9 +54,9 @@ async function bootstrap() {
     next();
   });
 
-  await app.listen(3000);
+  await app.listen(3002);
 
-  app.get(Logger).log(`Order Service rodando em: http://localhost:3000/api`);
+  app.get(Logger).log(`Order Service rodando em: http://localhost:3002/api`);
 }
 
 bootstrap().catch((err) => {

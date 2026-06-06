@@ -1,14 +1,12 @@
 {
   "/api/catalog": {
-    "target": "http://localhost:5000",
+    "target": "http://127.0.0.1:5000",
     "secure": false,
-    "changeOrigin": true,
     "pathRewrite": { "^/api/catalog": "" }
   },
   "/api/orders": {
-    "target": "http://localhost:5002",
+    "target": "http://127.0.0.1:5002",
     "secure": false,
-    "changeOrigin": true,
     "pathRewrite": { "^/api/orders": "" }
   }
 }

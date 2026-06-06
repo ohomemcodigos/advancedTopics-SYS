@@ -1,33 +1,31 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Logger } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
 import { ProcessPaymentCommand } from './commands/process-payment.command';
 
-@ApiTags('Payments')
 @Controller('payments')
 export class PaymentController {
+  private readonly logger = new Logger(PaymentController.name);
+
   constructor(
     private readonly paymentService: PaymentService,
-    private readonly commandBus: CommandBus,
+    private readonly commandBus: CommandBus
   ) {}
 
   @Get('order/:orderId')
-  @ApiOperation({ summary: 'Consultar pagamento por ID do pedido' })
-  @ApiResponse({ status: 200, description: 'Dados do pagamento encontrados.' })
-  @ApiResponse({ status: 404, description: 'Pagamento não encontrado.' })
   findByOrder(@Param('orderId') orderId: string) {
     return this.paymentService.getPaymentByOrder(orderId);
   }
 
-  @EventPattern('order_created')
-  async handleOrderCreated(
-    @Payload() data: { pedidoId: string; valor: number },
-  ): Promise<void> {
-    console.log('📦 Evento recebido via RabbitMQ no Payment Service:', data);
-    return await this.commandBus.execute(
-      new ProcessPaymentCommand(data.pedidoId, data.valor),
-    );
+  @EventPattern('PedidoCriado')
+  async handleOrderCreated(@Payload() data: any) {
+    this.logger.log('📥 EVENTO RECEBIDO NO PAGAMENTO: ' + JSON.stringify(data));
+    try {
+      await this.commandBus.execute(new ProcessPaymentCommand(data.pedidoId, data.valor));
+      this.logger.log('✅ Pagamento processado com sucesso!');
+    } catch (e) {
+      this.logger.error('❌ Erro no processamento: ' + (e instanceof Error ? e.message : e));
+    }
   }
 }

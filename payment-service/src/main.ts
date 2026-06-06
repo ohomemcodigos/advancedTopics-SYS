@@ -25,7 +25,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://rabbitmq:5672'],
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
       queue: 'order_queue',
       queueOptions: {
         durable: true,
@@ -45,11 +45,11 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  await app.listen(3000);
+  await app.listen(3003);
 
   app
     .get(Logger)
-    .log(`Payment Service está rodando em: http://localhost:3000/api`);
+    .log(`Payment Service está rodando em: http://localhost:3003/api`);
 }
 
 bootstrap().catch((err) => {

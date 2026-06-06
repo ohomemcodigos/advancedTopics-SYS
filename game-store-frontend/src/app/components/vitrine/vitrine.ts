@@ -52,9 +52,9 @@ export class VitrineComponent implements OnInit {
   comprarJogo(jogoId: string) {
     this.pedidoEmAndamento = true;
     this.mostrarPainel = true;
-    this.signalrService.registrarLog(`POST /api/orders para o jogo ID: ${jogoId}`);
+    this.signalrService.registrarLog(`POST /api/orders/orders para o jogo ID: ${jogoId}`);
 
-    this.http.post<any>('/api/orders', {
+    this.http.post<any>('/api/orders/orders', {
       userId: '123e4567-e89b-12d3-a456-426614174000',
       jogosIds: [jogoId],
       metodoPagamento: 'PIX',
@@ -80,9 +80,9 @@ export class VitrineComponent implements OnInit {
   simularPagamento() {
     if (!this.pedidoIdAtual) return;
     this.btnPagarDisabled = true;
-    this.signalrService.registrarLog("PATCH /api/orders/.../confirmar simulando o Pagamento...");
+    this.signalrService.registrarLog(`PATCH /api/orders/orders/${this.pedidoIdAtual}/confirmar simulando o Pagamento...`);
 
-    this.http.patch(`/api/orders/${this.pedidoIdAtual}/confirmar`, {}).subscribe({
+    this.http.patch(`/api/orders/orders/${this.pedidoIdAtual}/confirmar`, {}).subscribe({
       next: () => {
         this.signalrService.registrarLog("✅ Requisição HTTP concluída. Aguardando processamento...");
       },

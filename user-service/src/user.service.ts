@@ -2,11 +2,14 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { Usuario } from './domain/usuario/entidades/usuario.entity';
+import { Usuario, TipoPerfil } from './domain/usuario/entidades/usuario.entity';
 import { Credenciais } from './domain/usuario/objetos_de_valor/credenciais.vo';
 import { Perfil } from './domain/usuario/objetos_de_valor/perfil.vo';
 import { Regiao } from './domain/usuario/objetos_de_valor/regiao.vo';
@@ -15,68 +18,77 @@ import { CreateUserDto } from './domain/usuario/dto/create-user.dto';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-  private users: Usuario[] = [];
 
-  findAll(): Usuario[] {
+  constructor(
+    @InjectRepository(Usuario)
+    private readonly userRepository: Repository<Usuario>,
+  ) {}
+
+  async findAll(): Promise<Usuario[]> {
     this.logger.log({
-      msg: 'Buscando lista de todos os usuários',
+      msg: 'Buscando lista de todos os usuarios',
       action: 'findAll',
     });
 
-    return this.users;
+    return await this.userRepository.find();
   }
 
-  findOne(id: string): Usuario {
+  async findOne(id: string): Promise<Usuario> {
     this.logger.log({
-      msg: 'Buscando usuário por ID',
+      msg: 'Buscando usuario por ID',
       action: 'findOne',
       usuarioId: id,
     });
 
-    const user = this.users.find((u) => u.usuarioId === id);
+    const user = await this.userRepository.findOne({
+      where: { usuarioId: id },
+    });
+
     if (!user) {
       this.logger.warn({
-        msg: 'Usuário não encontrado',
+        msg: 'Usuario nao encontrado',
         action: 'findOne',
         usuarioId: id,
       });
-      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+      throw new NotFoundException(`Usuario com ID ${id} nao encontrado`);
     }
 
     this.logger.log({
-      msg: 'Usuário encontrado com sucesso',
+      msg: 'Usuario encontrado com sucesso',
       action: 'findOne',
       usuarioId: id,
     });
     return user;
   }
 
-  async create(dto: CreateUserDto): Promise<Usuario> {
+  async create(dto: CreateUserDto & { tipoPerfil?: TipoPerfil }): Promise<Usuario> {
     this.logger.log({
-      msg: 'Iniciando criação de usuário',
+      msg: 'Iniciando criacao de usuario',
       action: 'create',
       email: dto.email,
       pais: dto.pais,
     });
 
-    const emailExists = this.users.find(
-      (u) => u.credenciais.email === dto.email,
-    );
+    const emailExists = await this.userRepository.findOne({
+      where: { credenciais: { email: dto.email } },
+    });
 
     if (emailExists) {
       this.logger.warn({
-        msg: 'Tentativa de cadastro com email já existente',
+        msg: 'Tentativa de cadastro com email ja existente',
         action: 'create',
         email: dto.email,
       });
-      throw new BadRequestException('Email já cadastrado');
+      throw new BadRequestException('O e-mail informado ja esta cadastrado no sistema.');
     }
+
     const saltRounds = 10;
     const senhaHash = await bcrypt.hash(dto.senha, saltRounds);
 
     const credenciais = new Credenciais(dto.email, senhaHash);
     const perfil = new Perfil(dto.nome, dto.nickname, dto.avatarUrl);
     const regiao = new Regiao(dto.pais);
+    const perfilTipo = dto.tipoPerfil || TipoPerfil.CLIENTE;
 
     const newUser = new Usuario(
       randomUUID(),
@@ -84,41 +96,57 @@ export class UserService {
       credenciais,
       perfil,
       regiao,
+      perfilTipo
     );
 
-    this.users.push(newUser);
+    const savedUser = await this.userRepository.save(newUser);
+
     this.logger.log({
-      msg: 'Usuário criado com sucesso',
+      msg: 'Usuario criado com sucesso',
       action: 'create',
-      usuarioId: newUser.usuarioId,
+      usuarioId: savedUser.usuarioId,
+      perfil: savedUser.tipoPerfil,
     });
-    return newUser;
+    return savedUser;
   }
 
-  remove(id: string) {
+  async remove(id: string, requesterRole: string): Promise<{ message: string }> {
     this.logger.log({
-      msg: 'Iniciando remoção de usuário',
+      msg: 'Iniciando verificacao de seguranca para remocao',
       action: 'remove',
       usuarioId: id,
+      requesterRole,
     });
 
-    const index = this.users.findIndex((u) => u.usuarioId === id);
-    if (index === -1) {
+    if (requesterRole !== TipoPerfil.ADMIN) {
       this.logger.warn({
-        msg: 'Falha ao remover: Usuário não encontrado',
+        msg: 'Acesso negado: Apenas administradores podem remover perfis',
         action: 'remove',
         usuarioId: id,
       });
-      throw new NotFoundException('Usuário não encontrado');
+      throw new ForbiddenException('Acao nao permitida. Apenas administradores podem remover perfis do sistema.');
     }
 
-    this.users.splice(index, 1);
+    const user = await this.userRepository.findOne({
+      where: { usuarioId: id },
+    });
+
+    if (!user) {
+      this.logger.warn({
+        msg: 'Falha ao remover: Usuario nao encontrado',
+        action: 'remove',
+        usuarioId: id,
+      });
+      throw new NotFoundException('Usuario nao encontrado');
+    }
+
+    await this.userRepository.remove(user);
 
     this.logger.log({
-      msg: 'Usuário removido com sucesso',
+      msg: 'Usuario removido do banco de dados com sucesso',
       action: 'remove',
       usuarioId: id,
     });
-    return { message: 'Usuário removido com sucesso' };
+    return { message: 'Usuario removido com sucesso' };
   }
 }

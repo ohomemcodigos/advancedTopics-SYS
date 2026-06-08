@@ -20,18 +20,24 @@ import { PrometheusModule, makeCounterProvider } from '@willsoto/nestjs-promethe
         name: 'RABBITMQ_CLIENT',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'], // Garantido como localhost
-          queue: 'order_queue',           // Nome UNIFICADO
+          urls: ['amqp://localhost:5672'], 
+          queue: 'order_queue',           
           queueOptions: { durable: true },
         },
       },
     ]),
   ],
+  // Note que AppController foi removido da lista abaixo
   controllers: [PaymentController, HealthController],
+  // Note que AppService foi removido da lista abaixo
   providers: [
     PaymentService,
     ProcessPaymentHandler,
-    makeCounterProvider({ name: 'payments_processed_total', help: 'Total de pagamentos', labelNames: ['status'] }),
+    makeCounterProvider({ 
+      name: 'payments_processed_total', 
+      help: 'Total de pagamentos processados', 
+      labelNames: ['status'] 
+    }),
   ],
 })
 export class AppModule {}

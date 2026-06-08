@@ -29,12 +29,12 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     TerminusModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'sqlserver',
+      // Correção: Agora ele aponta para localhost por padrão quando rodado no terminal
+      host: process.env.DB_HOST || 'localhost',
       port: 1433,
       username: 'sa',
       password: process.env.DB_PASSWORD || 'MasterKey@123!',
       database: 'catalog_db',
-
       autoLoadEntities: true,
       synchronize: false,
       options: {

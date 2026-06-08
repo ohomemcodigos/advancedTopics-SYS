@@ -30,7 +30,14 @@ export class OrderService {
     const itens: OrderItem[] = dto.jogosIds.map((id) => ({ id, titulo: 'Jogo', preco: 49.9 }));
     const novaOrdem: Order = { id: uuid(), userId: dto.userId, itens, valorTotal: 49.9, status: OrderStatus.PENDING, metodoPagamento: dto.metodoPagamento, createdAt: new Date() };
     this.orders.push(novaOrdem);
-    this.rabbitClient.emit('PedidoCriado', { pedidoId: novaOrdem.id, valor: novaOrdem.valorTotal, metodoPagamento: novaOrdem.metodoPagamento });
+    
+    // Dispara a mensagem para a fila order_queue no RabbitMQ
+    this.rabbitClient.emit('PedidoCriado', { 
+      pedidoId: novaOrdem.id, 
+      valor: novaOrdem.valorTotal, 
+      metodoPagamento: novaOrdem.metodoPagamento 
+    });
+    
     return novaOrdem;
   }
 
@@ -45,7 +52,16 @@ export class OrderService {
   async confirmOrder(id: string): Promise<ConfirmOrderResponse> {
     const order = this.findOne(id);
     order.status = OrderStatus.CONFIRMED;
-    this.orderGateway.notificarStatusAlterado(order.id, { pedidoId: order.id, novoStatus: 'CONFIRMED' });
+    
+    // Correção: Adicionadas as propriedades obrigatórias exigidas pela interface StatusUpdateData
+    this.orderGateway.notificarStatusAlterado(order.id, { 
+      pedidoId: order.id, 
+      statusAnterior: 'PENDING',
+      novoStatus: 'CONFIRMED',
+      observacao: 'Pagamento processado com sucesso',
+      alteradoEm: new Date() 
+    });
+    
     return { message: 'Confirmado', order, payment: { status: 'SUCCESS', transactionId: uuid() } };
   }
 

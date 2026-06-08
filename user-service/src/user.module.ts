@@ -6,6 +6,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health/health.controller';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Usuario } from './domain/usuario/entidades/usuario.entity';
 
 @Module({
   imports: [
@@ -26,19 +27,23 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     TerminusModule,
     TypeOrmModule.forRoot({
       type: 'mssql',
-      host: 'sqlserver',
+      host: process.env.DB_HOST || 'localhost',
       port: 1433,
       username: 'sa',
-      password: 'MasterKey@123!',
+      password: process.env.DB_PASSWORD || 'MasterKey@123!',
       database: 'master',
       autoLoadEntities: true,
-      synchronize: false,
+      
+      // CRÍTICO: Deixe true até a tabela ser criada no banco
+      synchronize: true, 
+      
       options: {
         encrypt: false,
         trustServerCertificate: true,
       },
       connectionTimeout: 30000,
     }),
+    TypeOrmModule.forFeature([Usuario]),
   ],
   controllers: [UserController, HealthController],
   providers: [UserService],

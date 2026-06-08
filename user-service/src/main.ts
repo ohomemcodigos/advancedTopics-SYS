@@ -14,6 +14,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(new MetricsInterceptor());
   app.useGlobalInterceptors(new TimeoutInterceptor());
 
+  // CORREÇÃO CRÍTICA: Permite que o Frontend comunique com esta API
+  app.enableCors({ origin: '*', credentials: true });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,10 +35,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  // Alterado para a porta 3004 para evitar conflito com o Grafana
+  await app.listen(3004);
   app
     .get(Logger)
-    .log(`User Service está rodando em: http://localhost:3002/api`);
+    .log(`User Service está rodando em: http://localhost:3004/api`);
 }
 
 bootstrap().catch((err) => {

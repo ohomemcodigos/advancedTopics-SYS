@@ -1,6 +1,12 @@
-//VO responsável por armazenar o país do usuário.
+import { Column } from 'typeorm';
+
 export class Regiao {
-  constructor(public readonly pais: string) {
-    if (!pais) throw new Error('País é obrigatório.');
+  @Column({ name: 'pais', type: 'varchar', length: 255 })
+  public readonly pais!: string;
+
+  constructor(pais?: string) {
+    if (pais) {
+      this.pais = pais;
+    }
   }
 }

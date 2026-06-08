@@ -1,11 +1,24 @@
-//VO responsável por armazenar as informações de perfil do usuário.
+import { Column } from 'typeorm';
+
 export class Perfil {
-  constructor(
-    public readonly nome: string,
-    public readonly nickname: string,
-    public readonly avatarUrl: string,
-  ) {
-    if (!nome) throw new Error('Nome é obrigatório.');
-    if (!nickname) throw new Error('Nickname é obrigatório.');
+  @Column({ name: 'nome', type: 'varchar', length: 255 })
+  public readonly nome!: string;
+
+  @Column({ name: 'nickname', type: 'varchar', length: 255 })
+  public readonly nickname!: string;
+
+  @Column({ name: 'avatar_url', type: 'varchar', length: 255 })
+  public readonly avatarUrl!: string;
+
+  constructor(nome?: string, nickname?: string, avatarUrl?: string) {
+    if (nome) {
+      this.nome = nome;
+    }
+    if (nickname) {
+      this.nickname = nickname;
+    }
+    if (avatarUrl) {
+      this.avatarUrl = avatarUrl;
+    }
   }
 }

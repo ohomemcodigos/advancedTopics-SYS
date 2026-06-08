@@ -1,49 +1,27 @@
-/* eslint-disable */
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
 import { ProcessPaymentCommand } from './process-payment.command';
 import { PaymentService } from '../payment.service';
+import { Logger } from '@nestjs/common';
 
 @CommandHandler(ProcessPaymentCommand)
 export class ProcessPaymentHandler implements ICommandHandler<ProcessPaymentCommand> {
-  constructor(
-    private readonly paymentService: PaymentService,
-    @Inject('RABBITMQ_CLIENT') private readonly client: ClientProxy,
-  ) {}
+  private readonly logger = new Logger(ProcessPaymentHandler.name);
 
-  async execute(command: ProcessPaymentCommand): Promise<void> {
-    console.log(`💸 Processando pagamento do pedido: ${command.pedidoId}`);
+  constructor(private readonly paymentService: PaymentService) {}
 
-    try {
-      const resultado = await this.paymentService.processPayment(
-        command.pedidoId,
-        command.valor,
-        'PIX',
-      );
+  async execute(command: ProcessPaymentCommand): Promise<any> {
+    // Extraímos 'pedidoId' em vez de 'orderId' para respeitar a estrutura do Command
+    const { pedidoId, valor } = command as any; 
+    
+    this.logger.log(`Executando comando de pagamento para pedido: ${pedidoId} no valor de R$ ${valor}`);
 
-      const statusPagamento = 'APROVADO';
+    // O PaymentService espera um orderId, então passamos o pedidoId aqui
+    const resultado = this.paymentService.processPayment(pedidoId, valor);
 
-      this.client.emit('payment_processed', {
-        pedidoId: command.pedidoId,
-        pagamentoId: resultado.pagamentoId,
-        status: statusPagamento,
-        processadoEm: new Date().toISOString(),
-      });
+    this.logger.log(
+      `✅ Pagamento processado com sucesso! Status: ${resultado.status}`
+    );
 
-      console.log(
-        `✅ Pagamento (${resultado.pagamentoId}) processado com status ${statusPagamento} e publicado na fila!`,
-      );
-    } catch (error) {
-      console.error(
-        `❌ Erro ao processar pagamento do pedido ${command.pedidoId}`,
-        error,
-      );
-
-      this.client.emit('payment_failed', {
-        pedidoId: command.pedidoId,
-        motivo: 'Erro interno durante o processamento',
-      });
-    }
+    return resultado;
   }
 }

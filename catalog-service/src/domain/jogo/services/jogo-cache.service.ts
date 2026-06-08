@@ -15,7 +15,10 @@ export class JogoCacheService implements OnModuleInit, OnModuleDestroy {
   private countWithoutCache = 0;
 
   async onModuleInit() {
-    this.client = createClient({ url: 'redis://:redissenha123@redis:6379' });
+    // Correção: Agora usa localhost por padrão para rodar no terminal, mantendo compatibilidade com Docker via REDIS_HOST
+    const redisHost = process.env.REDIS_HOST || 'localhost';
+    this.client = createClient({ url: `redis://:redissenha123@${redisHost}:6379` });
+    
     this.client.on('error', (err) => console.error('[Redis Error]', err));
     await this.client.connect();
     console.log('🔌 Catalog-Service conectado com sucesso ao Redis Cache!');

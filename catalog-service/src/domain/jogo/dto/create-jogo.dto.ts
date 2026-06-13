@@ -1,20 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { 
-  IsNotEmpty, 
-  IsString, 
-  IsNumber, 
-  IsPositive, 
-  MinLength, 
-  ValidateNested, 
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsPositive,
+  MinLength,
+  ValidateNested,
   IsDefined,
-  IsEnum
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // --- Objetos de Valor ---
 
 class PrecoDto {
-  @ApiProperty({ description: 'Valor numérico', example: 149.90 })
+  @ApiProperty({ description: 'Valor numérico', example: 149.9 })
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   valor!: number;
@@ -33,10 +32,10 @@ class CategoriaDto {
 }
 
 class ClassificacaoIndicativaDto {
-  @ApiProperty({ 
-    description: 'Faixa etária permitida', 
+  @ApiProperty({
+    description: 'Faixa etária permitida',
     example: '14',
-    enum: ['L', '10', '12', '14', '16', '18'] 
+    enum: ['L', '10', '12', '14', '16', '18'],
   })
   @IsString()
   @IsNotEmpty()
@@ -60,7 +59,6 @@ class RequisitosTecnicosDto {
 // --- DTO Principal ---
 
 export class CreateJogoDto {
-
   @ApiProperty({ description: 'O nome do jogo' })
   @IsString()
   @IsNotEmpty({ message: 'O título não pode estar vazio' })

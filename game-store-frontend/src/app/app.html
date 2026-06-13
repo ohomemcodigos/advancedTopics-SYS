@@ -1,0 +1,307 @@
+<main class="app-container">
+  <header class="topbar">
+    <div class="logo">GameStore <span>Enterprise</span></div>
+    
+    <div class="header-controls">
+      @if (usuarioLogado) {
+        <div class="user-profile">
+          <span class="role-badge" [class.admin]="usuarioLogado.tipoPerfil === 'ADMIN'">
+            {{ usuarioLogado.tipoPerfil }}
+          </span>
+          <span class="user-name">{{ usuarioLogado.nome }}</span>
+          <button class="btn-logout" (click)="fazerLogout()">Sair</button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (visaoAtual === 'LOGIN') {
+    <section class="auth-wrapper">
+      <div class="auth-box">
+        <h2>Acesso ao Sistema</h2>
+        <div class="form-group">
+          <label>E-mail Corporativo</label>
+          <input type="email" placeholder="ex: cliente@email.com" [(ngModel)]="loginEmail">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" placeholder="Sua senha de acesso" [(ngModel)]="loginSenha">
+        </div>
+        <button class="btn-primary full-width" (click)="fazerLogin()">Entrar</button>
+      </div>
+
+      <div class="auth-box">
+        <h2>Criar Nova Conta</h2>
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" placeholder="ex: João Silva" [(ngModel)]="regNome">
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" placeholder="ex: joao@email.com" [(ngModel)]="regEmail">
+        </div>
+        <div class="form-group">
+          <label>Definir Senha</label>
+          <input type="password" placeholder="Mínimo 6 caracteres" [(ngModel)]="regSenha">
+        </div>
+        <div class="action-row">
+          <button class="btn-secondary full-width" (click)="cadastrarUsuario()">Cadastrar Cliente</button>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (visaoAtual !== 'LOGIN') {
+    <nav class="nav-tabs">
+      @if (usuarioLogado?.tipoPerfil === 'CLIENTE') {
+        <button class="nav-btn" [class.active]="visaoAtual === 'STORE'" (click)="navegarPara('STORE')">Vitrine de Jogos</button>
+        <button class="nav-btn" [class.active]="visaoAtual === 'LIBRARY'" (click)="navegarPara('LIBRARY')">Minha Biblioteca</button>
+        <button class="nav-btn" [class.active]="visaoAtual === 'PROFILE'" (click)="navegarPara('PROFILE')">Meu Perfil e Chaves</button>
+      }
+      @if (usuarioLogado?.tipoPerfil === 'ADMIN') {
+        <button class="nav-btn" [class.active]="visaoAtual === 'ADMIN_USERS'" (click)="navegarPara('ADMIN_USERS')">Gestão de Contas</button>
+        <button class="nav-btn" [class.active]="visaoAtual === 'ADMIN_HISTORY'" (click)="navegarPara('ADMIN_HISTORY')">Histórico Global</button>
+      }
+    </nav>
+
+    <div class="dashboard-grid" [class.admin-layout]="usuarioLogado?.tipoPerfil === 'ADMIN'">
+      <div class="main-content">
+        
+        @if (visaoAtual === 'STORE') {
+          <div class="section-header">Catálogo de Produtos</div>
+          <div class="catalog-grid">
+            @for (jogo of jogos; track jogo.id) {
+              <div class="product-card">
+                <img [src]="jogo.imagem" [alt]="jogo.titulo" class="product-image">
+                <div class="product-info">
+                  <h3 class="product-title">{{ jogo.titulo }}</h3>
+                  <div class="product-price">R$ {{ jogo.preco.toFixed(2) }}</div>
+                  <button class="btn-primary full-width" (click)="abrirModalCompra(jogo)">Adquirir Licença</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (visaoAtual === 'LIBRARY') {
+          <div class="section-header">Minha Biblioteca Digital (Itens Únicos Ativados)</div>
+          @if (jogosComprados.length > 0) {
+            <div class="catalog-grid">
+              @for (jogo of jogosComprados; track jogo.id) {
+                <div class="product-card">
+                  <img [src]="jogo.imagem" [alt]="jogo.titulo" class="product-image" style="opacity: 0.85;">
+                  <div class="product-info">
+                    <h3 class="product-title">{{ jogo.titulo }}</h3>
+                    <div class="product-price" style="font-size: 1rem; color: #9ca3af; margin-bottom: 12px;">Licença Ativa</div>
+                    <button class="btn-play full-width">Baixar e Instalar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state text-muted" style="padding: 60px; text-align: center; border: 1px dashed #252d38; border-radius: 12px;">
+              <h3 style="color: #9ca3af; margin-bottom: 12px;">Sua biblioteca está vazia.</h3>
+              <p>Compre jogos na vitrine e ative suas chaves na aba "Meu Perfil e Chaves" para que eles apareçam aqui.</p>
+            </div>
+          }
+        }
+
+        @if (visaoAtual === 'PROFILE') {
+          <div class="section-header">Informações da Conta</div>
+          <div class="profile-card">
+            <div class="profile-info-row"><strong>Nome:</strong> {{ usuarioLogado?.nome }}</div>
+            <div class="profile-info-row"><strong>E-mail:</strong> {{ usuarioLogado?.email }}</div>
+            <div class="profile-info-row"><strong>ID Persistente:</strong> <span class="id-cell">{{ usuarioLogado?.id }}</span></div>
+          </div>
+
+          <div class="section-header" style="margin-top: 32px;">Inventário de Chaves (Múltiplas Cópias)</div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Jogo</th>
+                  <th>Status Compra</th>
+                  <th>Chave de Ativação (Serial)</th>
+                  <th style="text-align: right;">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (chave of chavesAdquiridas; track $index) {
+                  <tr>
+                    <td style="font-weight: 500;">{{ chave.jogo.titulo }}</td>
+                    <td><span class="role-badge" [class.admin]="chave.statusPagamento === 'APROVADO' || chave.statusPagamento === 'CONFIRMADO'">{{ chave.statusPagamento }}</span></td>
+                    <td class="id-cell" style="color: #4ade80;">{{ chave.codigo }}</td>
+                    <td style="text-align: right;">
+                      @if (chave.statusPagamento === 'APROVADO' || chave.statusPagamento === 'CONFIRMADO') {
+                        @if (chave.foiAtivada) {
+                          <span class="text-muted" style="font-size: 0.85rem; padding-right: 12px;">✓ Ativada na Biblioteca</span>
+                        } @else {
+                          <button class="btn-outline" style="padding: 8px 14px; font-size: 0.85rem;" (click)="ativarChave(chave)">Ativar Jogo</button>
+                        }
+                      } @else {
+                        <span class="text-muted" style="font-size: 0.85rem;">Aguardando...</span>
+                      }
+                    </td>
+                  </tr>
+                }
+                @if (chavesAdquiridas.length === 0) {
+                  <tr><td colspan="4" class="text-muted" style="text-align: center; padding: 32px;">Você não possui chaves no inventário.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-header" style="margin-top: 32px;">Meu Histórico de Pedidos</div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Itens Adquiridos</th>
+                  <th>Método</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pedido of historicoPedidos; track pedido.id) {
+                  <tr>
+                    <td class="id-cell">{{ pedido.id.split('-')[0] }}</td>
+                    <td>{{ obterNomeJogo(pedido) }}</td>
+                    <td>{{ pedido.metodoPagamento }}</td>
+                    <td><span class="role-badge" [class.admin]="pedido.status === 'APROVADO' || pedido.status === 'CONFIRMADO'">{{ pedido.status }}</span></td>
+                  </tr>
+                }
+                @if (historicoPedidos.length === 0) {
+                  <tr><td colspan="4" class="text-muted" style="text-align: center;">Nenhuma transação encontrada.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (visaoAtual === 'ADMIN_USERS') {
+          <div class="section-header">Base de Dados de Usuários</div>
+          <div class="split-layout">
+            <div class="list-pane">
+              @for (u of usuariosCadastrados; track u.id) {
+                <div class="list-item" [class.active]="usuarioSelecionadoAdmin?.id === u.id" (click)="selecionarUsuario(u)">
+                  <div class="list-item-title">{{ u.nome }}</div>
+                  <div class="list-item-sub">{{ u.email }}</div>
+                </div>
+              }
+            </div>
+            <div class="details-pane">
+              @if (usuarioSelecionadoAdmin) {
+                <h3>Detalhes do Usuário</h3>
+                <p><strong>ID:</strong> <span class="id-cell">{{ usuarioSelecionadoAdmin.id }}</span></p>
+                <p><strong>Nome:</strong> {{ usuarioSelecionadoAdmin.nome }}</p>
+                <p><strong>E-mail:</strong> {{ usuarioSelecionadoAdmin.email }}</p>
+                <p><strong>Perfil:</strong> <span class="role-badge" [class.admin]="usuarioSelecionadoAdmin.tipoPerfil === 'ADMIN'">{{ usuarioSelecionadoAdmin.tipoPerfil }}</span></p>
+                
+                @if (usuarioSelecionadoAdmin.id !== usuarioLogado?.id && usuarioSelecionadoAdmin.tipoPerfil !== 'ADMIN') {
+                  <button class="btn-danger full-width" style="margin-top: 24px;" (click)="apagarUsuario(usuarioSelecionadoAdmin.id)">Revogar Acesso (Apagar Conta)</button>
+                }
+              } @else {
+                <div class="empty-state text-muted">Selecione um usuário.</div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (visaoAtual === 'ADMIN_HISTORY') {
+          <div class="section-header">Auditoria Global de Transações</div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>ID Usuário</th>
+                  <th>Pacote Adquirido</th>
+                  <th>Método</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pedido of historicoPedidos; track pedido.id) {
+                  <tr>
+                    <td class="id-cell">{{ pedido.id.split('-')[0] }}</td>
+                    <td class="id-cell">{{ pedido.userId.split('-')[0] }}</td>
+                    <td>{{ obterNomeJogo(pedido) }}</td>
+                    <td>{{ pedido.metodoPagamento }}</td>
+                    <td><span class="role-badge" [class.admin]="pedido.status === 'APROVADO' || pedido.status === 'CONFIRMADO'">{{ pedido.status }}</span></td>
+                  </tr>
+                }
+                @if (historicoPedidos.length === 0) {
+                  <tr><td colspan="5" class="text-muted" style="text-align: center;">Nenhuma transação registrada no sistema.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      @if (usuarioLogado?.tipoPerfil === 'ADMIN') {
+        <aside class="terminal-panel">
+          <div class="terminal-header">
+            Auditoria em Tempo Real
+            <span class="status-indicator">Ativo</span>
+          </div>
+          <div class="terminal-body">
+            @for (log of signalR.logsDoSistema(); track $index) {
+              <div class="log-entry">{{ log }}</div>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+  }
+
+  @if (modalAberto && jogoSelecionado) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h2>Finalizar Aquisição</h2>
+        
+        <div class="checkout-summary">
+          <p><strong>Produto:</strong> {{ jogoSelecionado.titulo }}</p>
+          <p><strong>Valor:</strong> R$ {{ jogoSelecionado.preco.toFixed(2) }}</p>
+        </div>
+
+        @if (!processandoPagamento && !pagamentoConcluido) {
+          <div class="form-group checkout-form">
+            <label>Selecione o Método de Pagamento</label>
+            <select [(ngModel)]="metodoPagamentoSelecionado" class="custom-select">
+              <option value="PIX">Transferência PIX (Imediato)</option>
+              <option value="CARTAO">Cartão de Crédito</option>
+              <option value="BOLETO">Boleto Bancário</option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-outline" (click)="fecharModal()">Cancelar</button>
+            <button class="btn-primary" (click)="confirmarCompra()">Confirmar Pagamento</button>
+          </div>
+        }
+
+        @if (processandoPagamento && !pagamentoConcluido) {
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: #8b5cf6; font-size: 1.2rem; font-weight: 600;">Processando comunicação com gateway financeiro...</p>
+          </div>
+        }
+
+        @if (pagamentoConcluido) {
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: #4ade80; font-size: 1.4rem; font-weight: bold; margin-bottom: 8px;">Pagamento Aprovado!</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (toastVisivel) {
+    <div class="toast-popup" [class.sucesso]="toastTipo === 'sucesso'" [class.erro]="toastTipo === 'erro'">
+      <span class="material-icons" style="vertical-align: middle; margin-right: 8px; font-size: 1.2rem;">
+        {{ toastTipo === 'sucesso' ? 'check_circle' : 'error_outline' }}
+      </span>
+      {{ toastMensagem }}
+    </div>
+  }
+</main>

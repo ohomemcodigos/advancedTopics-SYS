@@ -1,0 +1,21 @@
+.container { 
+  max-width: 800px; 
+  margin: 0 auto; 
+  padding: 20px;
+  color: #cdd6f4;
+}
+h1, h2 { color: #89b4fa; text-align: center; }
+.aviso-cors { background-color: #f38ba8; color: #11111b; padding: 10px; text-align: center; border-radius: 4px; font-weight: bold; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.card { background-color: #313244; padding: 15px; border-radius: 8px; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+.card:hover { border-color: #89b4fa; }
+.card h3 { margin: 10px 0 5px 0; font-size: 1.1rem; }
+.card p { color: #a6e3a1; font-weight: bold; margin-bottom: 15px; }
+button { background-color: #89b4fa; color: #11111b; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s;}
+button:hover { background-color: #74c7ec; }
+button:disabled { background-color: #585b70; cursor: not-allowed; }
+.painel-pedido { background-color: #313244; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #89b4fa; }
+.status-texto { font-size: 1.2rem; text-align: center; margin-bottom: 10px; }
+.log-box { background-color: #11111b; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; height: 250px; overflow-y: auto; color: #a6adc8; white-space: pre-wrap; margin-top: 20px; }
+#btn-pagar { background-color: #fab387; margin-top: 15px;}
+#btn-pagar:hover:not(:disabled) { background-color: #f9a06f; }

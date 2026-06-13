@@ -1,12 +1,31 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { OrderController } from './order.controller';
+import { OrderEventsController } from './order-events.controller'; // <-- IMPORTADO
+import { VersionController } from './version.controller';
+import { CreateOrderHandler } from './commands/create-order.handler';
+import { ListOrdersByUserHandler } from './queries/list-orders-by-user.handler';
+import { GetOrderByIdHandler } from './queries/get-order-by-id.handler';
+import { OrderProjector } from './projections/order.projector';
+import { OrderGateway } from './gateways/order.gateway';
+import { OrderService } from './order.service'; // <-- IMPORTADO
 
-export class CreateOrderDto {
-  @ApiProperty({ example: '1' })
-  userId: string;
+@Module({
+  imports: [CqrsModule],
+  
+  controllers: [
+    OrderController, 
+    VersionController, 
+    OrderEventsController
+  ],
 
-  @ApiProperty({ example: ['uuid-1', 'uuid-2'], type: [String] })
-  jogosIds: string[];
-
-  @ApiProperty({ example: 'PIX', enum: ['PIX', 'CARTAO', 'BOLETO'] })
-  metodoPagamento: 'PIX' | 'CARTAO' | 'BOLETO';
-}
+  providers: [
+    OrderService,
+    CreateOrderHandler,
+    ListOrdersByUserHandler,
+    GetOrderByIdHandler,
+    OrderProjector,
+    OrderGateway,
+  ],
+})
+export class OrderModule {}

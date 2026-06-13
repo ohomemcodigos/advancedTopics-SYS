@@ -1,0 +1,17 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "bump-minor-pre-major": true,
+      "changelog-sections": [
+        { "type": "feat", "section": "✨ Novas Funcionalidades" },
+        { "type": "fix", "section": "🐛 Correções de Bug" },
+        { "type": "perf", "section": "⚡ Melhorias de Performance" },
+        { "type": "refactor", "section": "♻ Refatorações", "hidden": false },
+        { "type": "docs", "section": "📝 Documentação" },
+        { "type": "ci", "section": "🔧 CI/CD" },
+        { "type": "chore", "hidden": true }
+      ]
+    }
+  }
+}

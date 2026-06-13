@@ -1,17 +1,32 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
+import { EventPattern, Payload, ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { PaymentService } from './payment.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('Payments')
 @Controller('payments')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) { }
+  private readonly logger = new Logger(PaymentController.name);
+  private client: ClientProxy;
 
-  @Get('order/:orderId')
-  @ApiOperation({ summary: 'Consultar pagamento por ID do pedido' })
-  @ApiResponse({ status: 200, description: 'Dados do pagamento encontrados.' })
-  @ApiResponse({ status: 404, description: 'Pagamento não encontrado.' })
-  findByOrder(@Param('orderId') orderId: string) {
-    return this.paymentService.getPaymentByOrder(orderId);
+  constructor(private readonly paymentService: PaymentService) {
+    this.client = ClientProxyFactory.create({
+      transport: Transport.RMQ,
+      options: {
+        urls: ['amqp://localhost:5672'], 
+        queue: 'order_queue',
+        queueOptions: { durable: true },
+      },
+    });
+  }
+
+  @EventPattern('PedidoCriado')
+  async handlePedidoCriado(@Payload() data: any) {
+    this.logger.log(`Recebido no RabbitMQ: Pedido [${data.pedidoId}]`);
+    
+    // Processa a regra de negócio real
+    this.paymentService.processPayment(data.pedidoId, data.valor);
+
+    // Emite o evento de volta informando que foi aprovado
+    this.logger.log(`Enviando evento de PagamentoAprovado para a fila...`);
+    this.client.emit('PagamentoAprovado', { pedidoId: data.pedidoId });
   }
 }

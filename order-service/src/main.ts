@@ -1,0 +1,65 @@
+import { Request, Response, NextFunction } from 'express';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { RedisIoAdapter } from './gateways/redis.adapter';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor());
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  const config = new DocumentBuilder()
+    .setTitle('Pedidos')
+    .setDescription('API para gestão de pedidos')
+    .setVersion('1.0')
+    .addTag('Orders')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
+  app.enableCors({ origin: true, credentials: true });
+
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis();
+  app.useWebSocketAdapter(redisIoAdapter);
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'order_queue',
+      queueOptions: { durable: true },
+    },
+  });
+
+  await app.startAllMicroservices();
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`[DEBUG] Requisição recebida: ${req.method} ${req.url}`);
+    next();
+  });
+
+  await app.listen(3002);
+
+  app.get(Logger).log(`Order Service rodando em: http://localhost:3002/api`);
+}
+
+bootstrap().catch((err) => {
+  console.error('Failed to start Order Service:', err);
+  process.exit(1);
+});

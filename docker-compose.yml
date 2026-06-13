@@ -96,13 +96,13 @@ services:
       - prometheus
     <<: *api-defaults
 
-  # --- MICROSSERVIÇO: CATALOG SERVICE ---
+# --- MICROSSERVIÇO: CATALOG SERVICE ---
   catalog-api:
     build:
       context: ./catalog-service
     container_name: gestaopedidos-catalog-api
     ports:
-      - "5000:3001" 
+      - "3001:3001" # Ajustado para bater com a porta do NestJS
     environment:
       - NODE_ENV=production
       - DB_PASSWORD=MasterKey@123!
@@ -120,7 +120,7 @@ services:
       context: ./order-service
     container_name: gestaopedidos-order-api
     ports:
-      - "5002:3000" 
+      - "3002:3000" # Frontend chama a 3002, NestJS escuta na 3000
     environment:
       - JWT_SECRET=senha_doida_uaulegauuuu_567364537@#@
       - NODE_ENV=production
@@ -142,7 +142,7 @@ services:
       context: ./payment-service
     container_name: gestaopedidos-payment-api
     ports:
-      - "5003:3000"
+      - "3003:3000" # Frontend chama a 3003, NestJS escuta na 3000
     environment:
       - NODE_ENV=production
       - APP_VERSION=0.1.0
@@ -157,7 +157,7 @@ services:
       context: ./user-service
     container_name: gestaopedidos-user-api
     ports:
-      - "5001:3000"
+      - "3004:3004" # Ajustado para bater exatamente com o main.ts (3004)
     environment:
       - NODE_ENV=production
       - DB_PASSWORD=MasterKey@123!
@@ -165,6 +165,20 @@ services:
     depends_on:
       sqlserver:
         condition: service_started
+    <<: *api-defaults
+    
+# --- API GATEWAY (NGINX) ---
+  api-gateway:
+    image: nginx:alpine
+    container_name: gestaopedidos-gateway
+    ports:
+      - "8080:80" # Grafana já usa a 3000, então usamos a 8080
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - catalog-api
+      - order-api
+      - user-api
     <<: *api-defaults
 
 networks:

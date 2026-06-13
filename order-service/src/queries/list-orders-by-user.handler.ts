@@ -10,10 +10,9 @@ export class ListOrdersByUserHandler implements IQueryHandler<ListOrdersByUserQu
   async execute(query: ListOrdersByUserQuery): Promise<any[]> {
     const { userId } = query;
 
-    // Use a variável sqlPaginado que já está no seu arquivo
-    const sqlPaginado = `SELECT * FROM PedidosReadModel WHERE cliente_id = $1 ORDER BY criado_em DESC`;
+    // CORREÇÃO: O SQL Server utiliza @0 para variáveis indexadas no TypeORM, e não $1.
+    const sqlPaginado = `SELECT * FROM PedidosReadModel WHERE cliente_id = @0 ORDER BY criado_em DESC`;
 
-    // Executa e retorna a lista
     return await this.dataSource.query(sqlPaginado, [userId]);
   }
 }

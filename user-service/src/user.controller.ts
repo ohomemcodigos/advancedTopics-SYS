@@ -16,6 +16,13 @@ export class UserController {
     return await this.userService.create(dto);
   }
 
+  @Post('login')
+  @ApiOperation({ summary: 'Autenticar um usuario no sistema' })
+  @ApiResponse({ status: 200, description: 'Autenticacao bem-sucedida' })
+  async login(@Body() dto: any) {
+    return await this.userService.login(dto.email, dto.senha);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Listar todos os usuarios' })
   async findAll() {

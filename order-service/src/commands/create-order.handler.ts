@@ -53,7 +53,7 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
         metodoPagamento: dto.metodoPagamento || 'PIX',
       }).subscribe({
         next: () => this.logger.log('✅ Gatilho acionado: Mensagem enviada para a fila!'),
-        error: (err) => this.logger.error(`❌ Erro ao enviar para a fila: ${err.message}`)
+        error: (err) => this.logger.error(`Erro ao enviar para a fila: ${err.message}`)
       });
 
       end();
@@ -62,7 +62,7 @@ export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand> {
       return novoPedido;
     } catch (error) {
       this.counter.inc({ status: 'Erro' });
-      this.logger.error(`❌ Erro ao criar pedido: ${error instanceof Error ? error.message : error}`);
+      this.logger.error(`Erro ao criar pedido: ${error instanceof Error ? error.message : error}`);
       throw error;
     }
   }

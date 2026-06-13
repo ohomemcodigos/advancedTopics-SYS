@@ -13,9 +13,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
   app.useGlobalInterceptors(new MetricsInterceptor());
   app.useGlobalInterceptors(new TimeoutInterceptor());
-
-  // CORREÇÃO CRÍTICA: Permite que o Frontend comunique com esta API
-  app.enableCors({ origin: '*', credentials: true });
+  app.enableCors({ origin: true, credentials: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -35,7 +33,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Alterado para a porta 3004 para evitar conflito com o Grafana
   await app.listen(3004);
   app
     .get(Logger)

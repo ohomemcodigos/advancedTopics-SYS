@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  UnauthorizedException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -62,52 +63,100 @@ export class UserService {
   }
 
   async create(dto: CreateUserDto & { tipoPerfil?: TipoPerfil }): Promise<Usuario> {
-    this.logger.log({
-      msg: 'Iniciando criacao de usuario',
-      action: 'create',
-      email: dto.email,
-      pais: dto.pais,
-    });
-
-    const emailExists = await this.userRepository.findOne({
-      where: { credenciais: { email: dto.email } },
-    });
-
-    if (emailExists) {
-      this.logger.warn({
-        msg: 'Tentativa de cadastro com email ja existente',
+    try {
+      this.logger.log({
+        msg: 'Iniciando criacao de usuario',
         action: 'create',
         email: dto.email,
+        pais: dto.pais,
       });
-      throw new BadRequestException('O e-mail informado ja esta cadastrado no sistema.');
+
+      const emailExists = await this.userRepository.findOne({
+        where: { credenciais: { email: dto.email } },
+      });
+
+      if (emailExists) {
+        throw new BadRequestException('Este e-mail já está sendo utilizado por outro usuário.');
+      }
+
+      const saltRounds = 10;
+      const senhaHash = await bcrypt.hash(dto.senha, saltRounds);
+
+      const credenciais = new Credenciais(dto.email, senhaHash);
+      const perfil = new Perfil(dto.nome, dto.nickname, dto.avatarUrl);
+      const regiao = new Regiao(dto.pais);
+
+      const newUser = new Usuario(
+        randomUUID(),
+        new Date(),
+        credenciais,
+        perfil,
+        regiao,
+        dto.tipoPerfil || TipoPerfil.CLIENTE
+      );
+
+      const savedUser = await this.userRepository.save(newUser);
+
+      this.logger.log({
+        msg: 'Usuario criado com sucesso',
+        action: 'create',
+        usuarioId: savedUser.usuarioId,
+        perfil: savedUser.tipoPerfil,
+      });
+      return savedUser;
+
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      if (error instanceof Error && error.message.includes('inválido')) {
+        throw new BadRequestException(error.message);
+      }
+
+      this.logger.error({ msg: 'Erro inesperado no cadastro', error });
+      throw error;
+    }
+  }
+
+  async login(email: string, senhaAberta: string): Promise<Usuario> {
+    this.logger.log({
+      msg: 'Tentativa de login recebida',
+      action: 'login',
+      email,
+    });
+
+    const user = await this.userRepository.findOne({
+      where: { credenciais: { email } },
+    });
+
+    if (!user) {
+      this.logger.warn({
+        msg: 'Falha no login: email nao encontrado',
+        action: 'login',
+        email,
+      });
+      throw new UnauthorizedException('E-mail ou senha incorretos.');
     }
 
-    const saltRounds = 10;
-    const senhaHash = await bcrypt.hash(dto.senha, saltRounds);
+    const senhaValida = await bcrypt.compare(senhaAberta, user.credenciais.senhaHash);
 
-    const credenciais = new Credenciais(dto.email, senhaHash);
-    const perfil = new Perfil(dto.nome, dto.nickname, dto.avatarUrl);
-    const regiao = new Regiao(dto.pais);
-    const perfilTipo = dto.tipoPerfil || TipoPerfil.CLIENTE;
-
-    const newUser = new Usuario(
-      randomUUID(),
-      new Date(),
-      credenciais,
-      perfil,
-      regiao,
-      perfilTipo
-    );
-
-    const savedUser = await this.userRepository.save(newUser);
+    if (!senhaValida) {
+      this.logger.warn({
+        msg: 'Falha no login: senha incorreta',
+        action: 'login',
+        email,
+      });
+      throw new UnauthorizedException('E-mail ou senha incorretos.');
+    }
 
     this.logger.log({
-      msg: 'Usuario criado com sucesso',
-      action: 'create',
-      usuarioId: savedUser.usuarioId,
-      perfil: savedUser.tipoPerfil,
+      msg: 'Login efetuado com sucesso',
+      action: 'login',
+      usuarioId: user.usuarioId,
     });
-    return savedUser;
+
+    return user;
   }
 
   async remove(id: string, requesterRole: string): Promise<{ message: string }> {

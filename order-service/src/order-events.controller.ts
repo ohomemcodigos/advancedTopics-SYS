@@ -1,31 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { OrderGateway } from './gateways/order.gateway';
-
-interface PaymentProcessedData {
-  pedidoId: string;
-  status: string;
-  processadoEm: string;
-}
+import { OrderService } from './order.service';
 
 @Controller()
 export class OrderEventsController {
-  constructor(private readonly orderGateway: OrderGateway) {}
+  private readonly logger = new Logger(OrderEventsController.name);
 
-  @EventPattern('payment_processed')
-  // Removido 'async' e 'Promise'
-  handlePaymentProcessed(@Payload() data: PaymentProcessedData): void {
-    console.log(
-      `[RabbitMQ] Pagamento recebido para pedido: ${data.pedidoId} — status: ${data.status}`,
-    );
+  constructor(private readonly orderService: OrderService) {}
 
-    const novoStatus: string =
-      data.status === 'APROVADO' ? 'CONFIRMADO' : 'CANCELADO';
-
-    this.orderGateway.notificarStatusAlterado(data.pedidoId, {
-      pedidoId: data.pedidoId,
-      novoStatus,
-      alteradoEm: new Date(data.processadoEm),
-    });
+  @EventPattern('PagamentoAprovado')
+  async handlePagamentoAprovado(@Payload() data: { pedidoId: string }): Promise<void> {
+    this.logger.log(`[RabbitMQ] Pagamento Aprovado recebido para o pedido: ${data.pedidoId}`);
+    
+    await this.orderService.confirmOrder(data.pedidoId);
   }
 }

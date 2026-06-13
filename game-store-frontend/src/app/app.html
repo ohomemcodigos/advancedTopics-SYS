@@ -3,10 +3,6 @@
     <div class="logo">GameStore <span>Enterprise</span></div>
     
     <div class="header-controls">
-      <div class="connection-status" [class.online]="signalR.estaConectado()">
-        WebSocket: {{ signalR.estaConectado() ? 'Conectado' : 'Aguardando' }}
-      </div>
-      
       @if (usuarioLogado) {
         <div class="user-profile">
           <span class="role-badge" [class.admin]="usuarioLogado.tipoPerfil === 'ADMIN'">
